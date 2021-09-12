@@ -1,5 +1,6 @@
 #if !defined(INTC_TESTS_H)
 #define INTC_TESTS_H
+
 // -----------------------------------------------------------------------------
 // NOTE: Overview
 // -----------------------------------------------------------------------------
@@ -142,7 +143,17 @@ intc_u64 const INTC_TESTS_MAX_UNSIGNED_VALUES[] = {
         }                                                                                                              \
     } while (0)
 
-#define INTC_TESTS_ASSERT(expr) INTC_TESTS_ASSERT_MSG(expr, 0, "")
+#define INTC_TESTS_ASSERT(expr)                                                                                        \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if (!(expr))                                                                                                   \
+        {                                                                                                              \
+            test_case_.failed = true;                                                                                  \
+            char const *file  = intc_strip_path_to_file(__FILE__);                                                     \
+            printf("      +--Test failed at %s:%d, expression was: %s\n", file, __LINE__, #expr);                      \
+            printf("      V\n");                                                                                       \
+        }                                                                                                              \
+    } while (0)
 
 #if defined(INTC_TESTS_NO_COLORS)
     #define INTC_TESTS_COLOR_RED
@@ -630,8 +641,8 @@ struct intc_test_state intc_u128_unit_tests(void)
             bool                   f    = false;
             intc_u8                u8   = 0xffULL;
             intc_u16               u16  = 0xffffULL;
-            intc_u32               u32  = 0xffffffffULL;
-            intc_u64               u64  = 0xffffffffffffffffULL;
+            intc_u32               u32  = 0xffffffff;
+            intc_u64               u64  = 0xffffffffffffffff;
             struct intc_u128 const u128 = INTC_U128(0xffffffffffffffffULL, 0xffffffffffffffffULL);
 
             INTC_TESTS_ASSERT(intc_u128_eq(intc_u128_lshift(INTC_U64_TO_U128(u8), 7),   INTC_U64_TO_U128(0x7f80ULL)));

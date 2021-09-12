@@ -152,6 +152,9 @@
     #endif
     #define INTC_ZERO_INIT {}
 #else
+    #if !defined(INTC_NO_CPP_FEATURES)
+        #define INTC_NO_CPP_FEATURES
+    #endif
     #define INTC_BEGIN_EXTERN_C
     #define INTC_END_EXTERN_C
     #define INTC_ZERO_INIT {0}
@@ -638,10 +641,10 @@ INTC_API intc_u256  operator--(intc_u256 &lhs, int);
 #endif // INTC_H
 
 #if defined(INTC_IMPLEMENTATION)
-static bool const INTC__U8_IS_8_BITS  [sizeof(intc_u8)  == 1 ? 1 : -1] = {};
-static bool const INTC__U16_IS_16_BITS[sizeof(intc_u16) == 2 ? 1 : -1] = {};
-static bool const INTC__U32_IS_32_BITS[sizeof(intc_u32) == 4 ? 1 : -1] = {};
-static bool const INTC__U64_IS_64_BITS[sizeof(intc_u64) == 8 ? 1 : -1] = {};
+static bool const INTC__U8_IS_8_BITS  [sizeof(intc_u8)  == 1 ? 1 : -1] = INTC_ZERO_INIT;
+static bool const INTC__U16_IS_16_BITS[sizeof(intc_u16) == 2 ? 1 : -1] = INTC_ZERO_INIT;
+static bool const INTC__U32_IS_32_BITS[sizeof(intc_u32) == 4 ? 1 : -1] = INTC_ZERO_INIT;
+static bool const INTC__U64_IS_64_BITS[sizeof(intc_u64) == 8 ? 1 : -1] = INTC_ZERO_INIT;
 
 INTC_BEGIN_EXTERN_C
 // -----------------------------------------------------------------------------

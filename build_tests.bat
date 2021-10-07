@@ -11,16 +11,16 @@ where /q cl || (
 REM MSVC cl build
 echo [SCRIPT] Building tests via cl to build\intc_tests_cpp_msvc.exe
 pushd build
-cl -nologo -O2 -D INTC_TESTS_WITH_MAIN -I %script_dir% -TP %script_dir%\intc_tests.c /Fe:intc_tests_cpp_msvc /link
+cl -nologo -fsanitize=address -W4 -O2 -D INTC_TESTS_WITH_MAIN -I %script_dir% -TP %script_dir%\intc_tests.c /Fe:intc_tests_cpp_msvc /link /DEBUG
 
 echo [SCRIPT] Building tests via cl to build\intc_tests_c_msvc.exe
-cl -nologo -O2 -D INTC_TESTS_WITH_MAIN -I %script_dir% -TC %script_dir%\intc_tests.c /Fe:intc_tests_c_msvc /link
+cl -nologo -fsanitize=address -W4 -O2 -D INTC_TESTS_WITH_MAIN -I %script_dir% -TC %script_dir%\intc_tests.c /Fe:intc_tests_c_msvc /link /DEBUG
 popd
 
 REM Optional clang-cl build if we have the compiler on the path
 where /q clang-cl || goto :eof
 echo [SCRIPT] Building tests via clang-cl to build\intc_tests_cpp_clang.exe
 pushd build
-clang-cl -nologo -O2 -D INTC_TESTS_WITH_MAIN -I %script_dir% -TP %script_dir%\intc_tests.c /Fe:intc_tests_cpp_clang /link
+clang-cl -nologo -fsanitize=address -W4 -O2 -D INTC_TESTS_WITH_MAIN -I %script_dir% -TP %script_dir%\intc_tests.c /Fe:intc_tests_cpp_clang /link /DEBUG
 popd build
 

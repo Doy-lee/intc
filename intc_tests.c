@@ -134,12 +134,9 @@ intc_u64 const INTC_TESTS_MAX_UNSIGNED_VALUES[] = {
             char const *file  = intc_strip_path_to_file(__FILE__);                                                     \
             printf("      +--Test failed at %s:%d, expression was: %s\n", file, __LINE__, #expr);                      \
             printf("      V\n");                                                                                       \
-            if (fmt)                                                                                                   \
-            {                                                                                                          \
-                printf("      |--");                                                                                   \
-                printf(fmt, __VA_ARGS__);                                                                              \
-                fputc('\n', stdout);                                                                                   \
-            }                                                                                                          \
+            printf("      |--");                                                                                       \
+            printf(fmt, __VA_ARGS__);                                                                                  \
+            fputc('\n', stdout);                                                                                       \
         }                                                                                                              \
     } while (0)
 
@@ -199,7 +196,7 @@ intc_u64 const INTC_TESTS_MAX_UNSIGNED_VALUES[] = {
 // -----------------------------------------------------------------------------
 static char *intc_strip_path_to_file(char const *file)
 {
-    int   size   = strlen(file);
+    int   size   = (int)strlen(file);
     char *result = (char *)file;
     for (int i = size - 1; i >= 0; i--)
     {
@@ -215,7 +212,7 @@ static char *intc_strip_path_to_file(char const *file)
 
 struct intc_test_state intc_u128_unit_tests(void)
 {
-    struct intc_test_state result = {0};
+    struct intc_test_state result = INTC_ZERO_INIT;
     printf(INTC_TESTS_COLOR_MAGENTA "intc_u128 unit tests" INTC_TESTS_COLOR_RESET);
     printf("\n  accessors.cpp\n");
     {
@@ -420,8 +417,8 @@ struct intc_test_state intc_u128_unit_tests(void)
                 for (int lo = 0; lo < 2; lo++)
                 {
                     struct intc_u128 const val = INTC_U128((intc_u64)lo, (intc_u64)hi);
-                    INTC_TESTS_ASSERT(val.hi == hi);
-                    INTC_TESTS_ASSERT(val.lo == lo);
+                    INTC_TESTS_ASSERT(val.hi == (intc_u64)hi);
+                    INTC_TESTS_ASSERT(val.lo == (intc_u64)lo);
                 }
             }
 
@@ -454,7 +451,6 @@ struct intc_test_state intc_u128_unit_tests(void)
             INTC_TESTS_BEGIN("Arithmetic.divide");
             struct intc_u128 const big_val = INTC_U64_TO_U128(0xfedbca9876543210ULL);
             struct intc_u128 const small_val = INTC_U64_TO_U128(0xffffULL);
-            struct intc_u128 const res_val = INTC_U64_TO_U128(0xfedcc9753fc9ULL);
 
             INTC_TESTS_ASSERT(intc_u128_eq(intc_u128_div(small_val, small_val), INTC_U64_TO_U128(1)));
             INTC_TESTS_ASSERT(intc_u128_eq(intc_u128_div(small_val, big_val), INTC_U64_TO_U128(0)));
@@ -521,11 +517,9 @@ struct intc_test_state intc_u128_unit_tests(void)
     {
         {
             INTC_TESTS_BEGIN("Function.str");
-            int const leading_zeros = 5; // number of leading 0s
-
             // make sure all of the test strings create the ASCII version of the string
             struct intc_u128 const original = INTC_U64_TO_U128(2216002924);
-            for (int test_index = 0; test_index < sizeof(INTC_TESTS_STRING_BASE_TESTS)/sizeof(INTC_TESTS_STRING_BASE_TESTS[0]); test_index++)
+            for (int test_index = 0; test_index < (int)(sizeof(INTC_TESTS_STRING_BASE_TESTS)/sizeof(INTC_TESTS_STRING_BASE_TESTS[0])); test_index++)
             {
                 struct intc_base_to_string const *test_entry = INTC_TESTS_STRING_BASE_TESTS + test_index;
                 struct intc_u128_string output = intc_u128_str(original, test_entry->base, 0 /*separate_every_n_chars*/, ' ' /*separate_ch*/);
@@ -557,7 +551,7 @@ struct intc_test_state intc_u128_unit_tests(void)
         {
             INTC_TESTS_BEGIN("External.greater_than");
             for (int index = 0;
-                 index < sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]);
+                 index < (int)(sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]));
                  index++)
             {
                 struct intc_u128 const small = INTC_U128_ZERO;
@@ -591,7 +585,7 @@ struct intc_test_state intc_u128_unit_tests(void)
         {
             INTC_TESTS_BEGIN("External.greater_than_or_equals");
             for (int index = 0;
-                 index < sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]);
+                 index < (int)(sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]));
                  index++)
             {
                 struct intc_u128 const small = INTC_U128_ZERO;
@@ -637,13 +631,10 @@ struct intc_test_state intc_u128_unit_tests(void)
 
         {
             INTC_TESTS_BEGIN("External.shift_left");
-            bool                   t    = true;
-            bool                   f    = false;
             intc_u8                u8   = 0xffULL;
             intc_u16               u16  = 0xffffULL;
             intc_u32               u32  = 0xffffffff;
             intc_u64               u64  = 0xffffffffffffffff;
-            struct intc_u128 const u128 = INTC_U128(0xffffffffffffffffULL, 0xffffffffffffffffULL);
 
             INTC_TESTS_ASSERT(intc_u128_eq(intc_u128_lshift(INTC_U64_TO_U128(u8), 7),   INTC_U64_TO_U128(0x7f80ULL)));
             INTC_TESTS_ASSERT(intc_u128_eq(intc_u128_lshift(INTC_U64_TO_U128(u16), 15), INTC_U64_TO_U128(0x7fff8000ULL)));
@@ -671,7 +662,7 @@ struct intc_test_state intc_u128_unit_tests(void)
         {
             INTC_TESTS_BEGIN("External.less_than");
             for (int index = 0;
-                 index < sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]);
+                 index < (int)(sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]));
                  index++)
             {
                 struct intc_u128 const small = INTC_U128_ZERO;
@@ -705,7 +696,7 @@ struct intc_test_state intc_u128_unit_tests(void)
         {
             INTC_TESTS_BEGIN("External.less_than_or_equals");
             for (int index = 0;
-                 index < sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]);
+                 index < (int)(sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]));
                  index++)
             {
                 struct intc_u128 const small = INTC_U128_ZERO;
@@ -749,7 +740,6 @@ struct intc_test_state intc_u128_unit_tests(void)
             intc_u16               u16  = 0xaaaaULL;
             intc_u32               u32  = 0xaaaaaaaaULL;
             intc_u64               u64  = 0xaaaaaaaaaaaaaaaaULL;
-            struct intc_u128 const u128 = INTC_U128(0xaaaaaaaaaaaaaaaaULL, 0xaaaaaaaaaaaaaaaaULL);
             struct intc_u128 const val  = INTC_U64_TO_U128(0xd03ULL); // prime
 
             INTC_TESTS_ASSERT(intc_u128_eq(intc_u128_mod(INTC_U64_TO_U128(t), val),   INTC_U64_TO_U128(true)));
@@ -1030,7 +1020,7 @@ struct intc_test_state intc_u128_unit_tests(void)
 #if !defined(INTC_NO_U256)
 struct intc_test_state intc_u256_unit_tests(void)
 {
-    struct intc_test_state result = {0};
+    struct intc_test_state result = INTC_ZERO_INIT;
     printf(INTC_TESTS_COLOR_MAGENTA "intc_u256 unit tests" INTC_TESTS_COLOR_RESET);
     printf("\n  accessors.cpp\n");
     {
@@ -1329,7 +1319,6 @@ struct intc_test_state intc_u256_unit_tests(void)
             INTC_TESTS_BEGIN("Arithmetic.divide");
             const struct intc_u256 big     = INTC_U64_TO_U256(0xfedbca9876543210ULL);
             const struct intc_u256 small   = INTC_U64_TO_U256(0xffffULL);
-            const struct intc_u256 res_val = INTC_U64_TO_U256(0xfedcc9753fc9ULL);
 
             INTC_TESTS_ASSERT(intc_u256_eq(intc_u256_div(small, small), INTC_U64_TO_U256(1)));
             INTC_TESTS_ASSERT(intc_u256_eq(intc_u256_div(small, big), INTC_U64_TO_U256(0)));
@@ -1395,11 +1384,9 @@ struct intc_test_state intc_u256_unit_tests(void)
     {
         {
             INTC_TESTS_BEGIN("Function.str");
-            int const leading_zeros = 5; // number of leading 0s
-
             // make sure all of the test strings create the ASCII version of the string
             struct intc_u256 const original = INTC_U64_TO_U256(2216002924);
-            for (int test_index = 0; test_index < sizeof(INTC_TESTS_STRING_BASE_TESTS)/sizeof(INTC_TESTS_STRING_BASE_TESTS[0]); test_index++)
+            for (int test_index = 0; test_index < (int)(sizeof(INTC_TESTS_STRING_BASE_TESTS)/sizeof(INTC_TESTS_STRING_BASE_TESTS[0])); test_index++)
             {
                 struct intc_base_to_string const *test_entry = INTC_TESTS_STRING_BASE_TESTS + test_index;
                 struct intc_u256_string output = intc_u256_str(original, test_entry->base, 0 /*separate_every_n_chars*/, ' ' /*separate_ch*/);
@@ -1431,7 +1418,7 @@ struct intc_test_state intc_u256_unit_tests(void)
         {
             INTC_TESTS_BEGIN("External.greater_than");
             for (int index = 0;
-                 index < sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]);
+                 index < (int)(sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]));
                  index++)
             {
                 struct intc_u256 const small = INTC_U256_ZERO;
@@ -1466,7 +1453,7 @@ struct intc_test_state intc_u256_unit_tests(void)
         {
             INTC_TESTS_BEGIN("External.greater_than_or_equals");
             for (int index = 0;
-                 index < sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]);
+                 index < (int)(sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]));
                  index++)
             {
                 struct intc_u256 const small = INTC_U256_ZERO;
@@ -1499,10 +1486,10 @@ struct intc_test_state intc_u256_unit_tests(void)
                                         INTC_U128(lo_lo ? 0xffffffffffffffffULL : 0x0000000000000000ULL, lo_hi ? 0xffffffffffffffffULL : 0x0000000000000000ULL),
                                         INTC_U128(hi_lo ? 0xffffffffffffffffULL : 0x0000000000000000ULL, hi_hi ? 0xffffffffffffffffULL : 0x0000000000000000ULL)));
 
-                            INTC_TESTS_ASSERT(val.hi.hi == hi_hi ? 0x0000000000000000ULL : 0xffffffffffffffffULL);
-                            INTC_TESTS_ASSERT(val.hi.lo == hi_lo ? 0x0000000000000000ULL : 0xffffffffffffffffULL);
-                            INTC_TESTS_ASSERT(val.lo.hi == lo_hi ? 0x0000000000000000ULL : 0xffffffffffffffffULL);
-                            INTC_TESTS_ASSERT(val.lo.lo == lo_lo ? 0x0000000000000000ULL : 0xffffffffffffffffULL);
+                            INTC_TESTS_ASSERT(val.hi.hi == (intc_u64)hi_hi ? 0x0000000000000000ULL : 0xffffffffffffffffULL);
+                            INTC_TESTS_ASSERT(val.hi.lo == (intc_u64)hi_lo ? 0x0000000000000000ULL : 0xffffffffffffffffULL);
+                            INTC_TESTS_ASSERT(val.lo.hi == (intc_u64)lo_hi ? 0x0000000000000000ULL : 0xffffffffffffffffULL);
+                            INTC_TESTS_ASSERT(val.lo.lo == (intc_u64)lo_lo ? 0x0000000000000000ULL : 0xffffffffffffffffULL);
                         }
                     }
                 }
@@ -1530,8 +1517,6 @@ struct intc_test_state intc_u256_unit_tests(void)
 
         {
             INTC_TESTS_BEGIN("External.shift_left");
-            bool                   t    = true;
-            bool                   f    = false;
             intc_u8                u8   = 0xffULL;
             intc_u16               u16  = 0xffffULL;
             intc_u32               u32  = 0xffffffffULL;
@@ -1565,7 +1550,7 @@ struct intc_test_state intc_u256_unit_tests(void)
         {
             INTC_TESTS_BEGIN("External.less_than");
             for (int index = 0;
-                 index < sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]);
+                 index < (int)(sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]));
                  index++)
             {
                 struct intc_u256 const small = INTC_U256_ZERO;
@@ -1599,7 +1584,7 @@ struct intc_test_state intc_u256_unit_tests(void)
         {
             INTC_TESTS_BEGIN("External.less_than_or_equals");
             for (int index = 0;
-                 index < sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]);
+                 index < (int)(sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES)/sizeof(INTC_TESTS_MAX_UNSIGNED_VALUES[0]));
                  index++)
             {
                 struct intc_u256 const small = INTC_U256_ZERO;

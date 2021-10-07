@@ -408,8 +408,8 @@ struct intc_u256
 {
 #if !defined(INTC_NO_CPP_FEATURES)
     intc_u256() = default;
-    intc_u256(intc_u64 lo_u64) { *this = {}; lo.lo = lo_u64; }
-    intc_u256(intc_u128 lo)    { *this = {}; lo = lo; }
+    intc_u256(intc_u64 lo_u64) { *this = {}; this->lo.lo = lo_u64; }
+    intc_u256(intc_u128 lo)    { *this = {}; this->lo    = lo; }
     intc_u256(intc_u128 lo, intc_u128 hi) : lo(lo), hi(hi) {}
 #endif // INTC_NO_CPP_FEATURES
 
@@ -672,7 +672,7 @@ INTC_API bool INTC_API_PREFIX(128_init_cstring)(char const *string, int size, st
     for (int index = 0; index < size; index++)
     {
         int bits_written = (index * 4);
-        if (bits_written >= (sizeof(*dest) * 8))
+        if (bits_written >= (int)(sizeof(*dest) * 8))
             return true;
 
         char hex_ch         = string[index];
@@ -684,7 +684,7 @@ INTC_API bool INTC_API_PREFIX(128_init_cstring)(char const *string, int size, st
         if (bits4 == 0xFF)
             return false;
 
-        intc_u64 *word = (bits_written >= (sizeof(dest->lo) * 8)) ? &dest->lo : &dest->hi;
+        intc_u64 *word = (bits_written >= (int)(sizeof(dest->lo) * 8)) ? &dest->lo : &dest->hi;
         *word = (*word << 4) | bits4;
     }
 
@@ -942,7 +942,7 @@ INTC_API struct intc_u128_divmod_result INTC_API_PREFIX(128_divmod)(struct intc_
 
     if (INTC_API_PREFIX(128_eq)(rhs, INTC_U128_ZERO))
     {
-        INTC_ASSERT(0 && "Division by zero");
+        INTC_ASSERT(!"Division by zero");
         return result;
     }
 
@@ -1083,7 +1083,7 @@ INTC_API struct intc_u128_string INTC_API_PREFIX(128_str)(struct intc_u128 in, u
         } while (INTC_API_PREFIX(128_as_bool)(div_result.quot));
     }
 
-    INTC_ASSERT(val.size < sizeof(val.str) - 1);
+    INTC_ASSERT(val.size < (int)sizeof(val.str) - 1);
 
     struct intc_u128_string result;
     result.size = 0;
@@ -1688,7 +1688,7 @@ INTC_API struct intc_u256_divmod_result INTC_API_PREFIX(256_divmod)(struct intc_
 
     if (INTC_API_PREFIX(256_eq)(rhs, INTC_U256_ZERO))
     {
-        INTC_ASSERT(0 && "Division by zero");
+        INTC_ASSERT(!"Division by zero");
         return result;
     }
 
@@ -1812,7 +1812,7 @@ INTC_API int INTC_API_PREFIX(256_clz)(struct intc_u256 in)
 // -----------------------------------------------------------------------------
 INTC_API struct intc_u256_string INTC_API_PREFIX(256_str)(struct intc_u256 in, unsigned base, int separate_every_n_chars, char separate_ch)
 {
-    struct intc_u256_string val = {0};
+    struct intc_u256_string val = INTC_ZERO_INIT;
     if ((base < 2) || (base > 36))
         return val;
 
@@ -1840,7 +1840,7 @@ INTC_API struct intc_u256_string INTC_API_PREFIX(256_str)(struct intc_u256 in, u
         } while (INTC_API_PREFIX(256_as_bool)(div_result.quot));
     }
 
-    INTC_ASSERT(val.size <= sizeof(val.str) - 1);
+    INTC_ASSERT(val.size <= (int)(sizeof(val.str) - 1));
 
     struct intc_u256_string result;
     result.size = 0;

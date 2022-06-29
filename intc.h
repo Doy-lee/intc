@@ -1400,7 +1400,8 @@ INTC_API bool INTC_API_PREFIX(256_init_cstring_base)(char const *string, int siz
 
 INTC_API bool INTC_API_PREFIX(256_as_bool)(struct intc_u256 in)
 {
-    bool result = INTC_API_PREFIX(128_as_bool)(in.lo) | INTC_API_PREFIX(128_as_bool)(in.hi);
+    bool result = (bool)((unsigned)INTC_API_PREFIX(128_as_bool)(in.lo) |
+                         (unsigned)INTC_API_PREFIX(128_as_bool)(in.hi));
     return result;
 }
 
@@ -1539,7 +1540,8 @@ INTC_API bool INTC_API_PREFIX(256_eq)(struct intc_u256 lhs, struct intc_u256 rhs
 
 INTC_API bool INTC_API_PREFIX(256_neq)(struct intc_u256 lhs, struct intc_u256 rhs)
 {
-    bool result = (INTC_API_PREFIX(128_neq)(lhs.lo, rhs.lo) | INTC_API_PREFIX(128_neq)(lhs.hi, rhs.hi));
+    bool result = (bool)((unsigned)INTC_API_PREFIX(128_neq)(lhs.lo, rhs.lo) |
+                         (unsigned)INTC_API_PREFIX(128_neq)(lhs.hi, rhs.hi));
     return result;
 }
 
@@ -1575,7 +1577,8 @@ INTC_API bool INTC_API_PREFIX(256_lt)(struct intc_u256 lhs, struct intc_u256 rhs
 
 INTC_API bool INTC_API_PREFIX(256_gt_eq)(struct intc_u256 lhs, struct intc_u256 rhs)
 {
-    bool result = INTC_API_PREFIX(256_gt)(lhs, rhs) | INTC_API_PREFIX(256_eq)(lhs, rhs);
+    bool result = (bool)((unsigned)INTC_API_PREFIX(256_gt)(lhs, rhs) |
+                         (unsigned)INTC_API_PREFIX(256_eq)(lhs, rhs));
     return result;
 }
 

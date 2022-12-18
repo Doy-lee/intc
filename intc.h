@@ -100,14 +100,14 @@
         if (value == 64)
             value *= 1'000'000'000'000;
         intc_u256_string string = intc_u256_readable_int_str(value);
-        printf("%.*s\n", string.size, string.str); // 64,000,000,000,000
+        printf("%.*s\n", string.size, string.data); // 64,000,000,000,000
     #else
         intc_u256 value = INTC_U64_TO_U256(32);
         value = intc_u256_add_u64(value, 32);
         if (intc_u256_eq_u64(value, 64))
             value = intc_u256_mul(value, INTC_U64_TO_U256(1'000'000'000'000));
         intc_u256_string string = intc_u256_readable_int_str(value);
-        printf("%.*s\n", string.size, string.str); // 64,000,000,000,000
+        printf("%.*s\n", string.size, string.data); // 64,000,000,000,000
     #endif
         return 0;
     }
@@ -197,7 +197,7 @@ struct intc_u128_divmod_result
 struct intc_u128_string
 {
     // NOTE: Max value 340,282,366,920,938,463,463,374,607,431,768,211,455
-    char  str[256 + 1];
+    char  data[256 + 1];
     int   size;
 };
 
@@ -230,8 +230,8 @@ INTC_BEGIN_EXTERN_C
 // -----------------------------------------------------------------------------
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u128_init_cstring(...)
 // Construct a 128 unsigned integer from a string. This function supports
-// hexadecimal strings with and without the 0x prefix and integer numbers, i.e.
-// "0xafc8a" or "afc8a" or "0xAFC8A" or "xafc8a" or "720010" etc
+// hexadecimal strings with and without the 0x prefix i.e. "0xafc8a" or "afc8a"
+// or "0xAFC8A" or "xafc8a" .
 INTC_API bool                           INTC_API_PREFIX(128_init_cstring)(const char *string, int size, struct intc_u128 *dest);
 
 // Interpret the 128 bit integer as a lower bit-type by using the lo bits of the
@@ -425,7 +425,7 @@ struct intc_u256_divmod_result
 struct intc_u256_string
 {
     // NOTE: Max value 115,792,089,237,316,195,423,570,985,008,687,907,853,269,984,665,640,564,039,457,584,007,913,129,639,935
-    char  str[512 + 1];
+    char  data[512 + 1];
     int   size;
 };
 
@@ -462,8 +462,8 @@ INTC_BEGIN_EXTERN_C
 // -----------------------------------------------------------------------------
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u256_init_cstring(...)
 // Construct a 128 unsigned integer from a string. This function supports
-// hexadecimal strings with and without the 0x prefix and integer numbers, i.e.
-// "0xafc8a" or "afc8a" or "0xAFC8A" or "xafc8a" or "720010" etc
+// hexadecimal strings with and without the 0x prefix i.e. "0xafc8a" or "afc8a"
+// or "0xAFC8A" or "xafc8a".
 INTC_API bool                           INTC_API_PREFIX(256_init_cstring)(char const *string, int size, struct intc_u256 *dest);
 
 // TODO(dqn): We should support all the bases that the printing functions work
@@ -684,7 +684,7 @@ INTC_API bool INTC_API_PREFIX(128_init_cstring)(char const *string, int size, st
         if (bits4 == 0xFF)
             return false;
 
-        intc_u64 *word = (bits_written >= (int)(sizeof(dest->lo) * 8)) ? &dest->lo : &dest->hi;
+        intc_u64 *word = (bits_written >= (int)(sizeof(dest->lo) * 8)) ? &dest->hi : &dest->lo;
         *word = (*word << 4) | bits4;
     }
 
@@ -1060,7 +1060,7 @@ INTC_API struct intc_u128_string INTC_API_PREFIX(128_str)(struct intc_u128 in, u
 
     if (INTC_API_PREFIX(128_eq)(in, INTC_U128_ZERO))
     {
-        val.str[val.size++] = '0';
+        val.data[val.size++] = '0';
     }
     else
     {
@@ -1072,25 +1072,25 @@ INTC_API struct intc_u128_string INTC_API_PREFIX(128_str)(struct intc_u128 in, u
         do
         {
             div_result          = INTC_API_PREFIX(128_divmod)(div_result.quot, INTC_U64_TO_U128(base));
-            val.str[val.size++] = "0123456789abcdefghijklmnopqrstuvwxyz"[div_result.rem.lo];
+            val.data[val.size++] = "0123456789abcdefghijklmnopqrstuvwxyz"[div_result.rem.lo];
 
             if (separate_every_n_chars > 0 && INTC_API_PREFIX(128_as_bool)(div_result.quot))
             {
                 insert_count++;
                 if (insert_count % separate_every_n_chars == 0)
-                    val.str[val.size++] = separate_ch;
+                    val.data[val.size++] = separate_ch;
             }
         } while (INTC_API_PREFIX(128_as_bool)(div_result.quot));
     }
 
-    INTC_ASSERT(val.size < (int)sizeof(val.str) - 1);
+    INTC_ASSERT(val.size < (int)sizeof(val.data) - 1);
 
     struct intc_u128_string result;
     result.size = 0;
 
     for (int i = val.size - 1; i >= 0; i--)
-        result.str[result.size++] = val.str[i];
-    result.str[result.size] = 0;
+        result.data[result.size++] = val.data[i];
+    result.data[result.size] = 0;
 
     return result;
 }
@@ -1821,7 +1821,7 @@ INTC_API struct intc_u256_string INTC_API_PREFIX(256_str)(struct intc_u256 in, u
 
     if (INTC_API_PREFIX(256_eq)(in, INTC_U256_ZERO))
     {
-        val.str[val.size++] = '0';
+        val.data[val.size++] = '0';
     }
     else
     {
@@ -1832,25 +1832,25 @@ INTC_API struct intc_u256_string INTC_API_PREFIX(256_str)(struct intc_u256 in, u
         do
         {
             div_result          = INTC_API_PREFIX(256_divmod)(div_result.quot, INTC_U64_TO_U256(base));
-            val.str[val.size++] = "0123456789abcdefghijklmnopqrstuvwxyz"[INTC_API_PREFIX(128_as_u32)(div_result.rem.lo)];
+            val.data[val.size++] = "0123456789abcdefghijklmnopqrstuvwxyz"[INTC_API_PREFIX(128_as_u32)(div_result.rem.lo)];
 
             if (separate_every_n_chars > 0 && INTC_API_PREFIX(256_as_bool)(div_result.quot))
             {
                 insert_count++;
                 if (insert_count % separate_every_n_chars == 0)
-                    val.str[val.size++] = separate_ch;
+                    val.data[val.size++] = separate_ch;
             }
         } while (INTC_API_PREFIX(256_as_bool)(div_result.quot));
     }
 
-    INTC_ASSERT(val.size <= (int)(sizeof(val.str) - 1));
+    INTC_ASSERT(val.size <= (int)(sizeof(val.data) - 1));
 
     struct intc_u256_string result;
     result.size = 0;
 
     for (int i = val.size - 1; i >= 0; i--)
-        result.str[result.size++] = val.str[i];
-    result.str[result.size] = 0;
+        result.data[result.size++] = val.data[i];
+    result.data[result.size] = 0;
 
     return result;
 }

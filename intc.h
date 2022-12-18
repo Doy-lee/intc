@@ -669,9 +669,10 @@ INTC_API bool INTC_API_PREFIX(128_init_cstring)(char const *string, int size, st
 
     *dest = INTC_U128_ZERO;
 
-    for (int index = 0; index < size; index++)
+    for (int index = size - 1, bits_written = 0;
+         index >= 0;
+         index--, bits_written += 4)
     {
-        int bits_written = (index * 4);
         if (bits_written >= (int)(sizeof(*dest) * 8))
             return true;
 
@@ -684,8 +685,8 @@ INTC_API bool INTC_API_PREFIX(128_init_cstring)(char const *string, int size, st
         if (bits4 == 0xFF)
             return false;
 
-        intc_u64 *word = (bits_written >= (int)(sizeof(dest->lo) * 8)) ? &dest->lo : &dest->hi;
-        *word = (*word << 4) | bits4;
+        intc_u64 *word = (bits_written >= (int)(sizeof(dest->lo) * 8)) ? &dest->hi : &dest->lo;
+        *word = *word | ((intc_u64)bits4 << bits_written);
     }
 
     return true;

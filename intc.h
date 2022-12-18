@@ -684,7 +684,7 @@ INTC_API bool INTC_API_PREFIX(128_init_cstring)(char const *string, int size, st
         if (bits4 == 0xFF)
             return false;
 
-        intc_u64 *word = (bits_written >= (int)(sizeof(dest->lo) * 8)) ? &dest->hi : &dest->lo;
+        intc_u64 *word = (bits_written >= (int)(sizeof(dest->lo) * 8)) ? &dest->lo : &dest->hi;
         *word = (*word << 4) | bits4;
     }
 
@@ -1357,7 +1357,7 @@ INTC_API bool INTC_API_PREFIX(256_init_cstring)(char const *string, int size, st
 
     int  half_buffer_size = sizeof(buffer) / 2;
     bool result           = INTC_API_PREFIX(128_init_cstring)(buffer, half_buffer_size, &dest->hi);
-    result |= INTC_API_PREFIX(128_init_cstring)(buffer + half_buffer_size, half_buffer_size, &dest->lo);
+    result               |= INTC_API_PREFIX(128_init_cstring)(buffer + half_buffer_size, half_buffer_size, &dest->lo);
 
     return result;
 }

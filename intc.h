@@ -191,7 +191,7 @@ struct intc_u128_divmod_result
 struct intc_u128_string
 {
     // NOTE: Max value 340,282,366,920,938,463,463,374,607,431,768,211,455
-    char  data[256 + 1];
+    char  data[63 + 1];
     int   size;
 };
 
@@ -220,11 +220,16 @@ struct intc_u128_string
 INTC_BEGIN_EXTERN_C
 // NOTE: U128 Converters
 // -----------------------------------------------------------------------------
-// Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u128_init_cstring(...)
+// Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u128_init_hex_cstring(...)
 // Construct a 128 unsigned integer from a string. This function supports
 // hexadecimal strings with and without the 0x prefix i.e. "0xafc8a" or "afc8a"
 // or "0xAFC8A" or "xafc8a" .
-INTC_API bool                           INTC_API_PREFIX(128_init_cstring)(const char *string, int size, struct intc_u128 *dest);
+INTC_API bool                           INTC_API_PREFIX(128_init_hex_cstring)(const char *string, int size, struct intc_u128 *dest);
+
+// Construct a 128 unsigned integer from a base 10 number string. The separator
+// character given will be permitted and skipped in the string if encountered,
+// e.g. ','. If no separator is permitted, pass 0 as the separator.
+INTC_API bool                           INTC_API_PREFIX(128_init_cstring)(char const *string, int size, struct intc_u128 *dest, char separator);
 
 // Interpret the 128 bit integer as a lower bit-type by using the lo bits of the
 // integer and truncating where necessary.
@@ -435,17 +440,22 @@ struct intc_u256_string
 INTC_BEGIN_EXTERN_C
 // NOTE: U256 Converters
 // -----------------------------------------------------------------------------
-// Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u256_init_cstring(...)
+// Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u256_init_hex_cstring(...)
 // Construct a 128 unsigned integer from a string. This function supports
 // hexadecimal strings with and without the 0x prefix i.e. "0xafc8a" or "afc8a"
 // or "0xAFC8A" or "xafc8a".
-INTC_API bool                           INTC_API_PREFIX(256_init_cstring)(char const *string, int size, struct intc_u256 *dest);
+INTC_API bool                           INTC_API_PREFIX(256_init_hex_cstring)(char const *string, int size, struct intc_u256 *dest);
 
 // TODO(dqn): We should support all the bases that the printing functions work
 // with so you can always do a round-trip store and load from disk.
 // Similar to above except the base of the number can be specified, base must be
 // between (2 < base < 17).
-INTC_API bool                           INTC_API_PREFIX(256_init_cstring_base)(char const *string, int size, int base, struct intc_u256 *dest);
+INTC_API bool                           INTC_API_PREFIX(256_init_hex_cstring_base)(char const *string, int size, int base, struct intc_u256 *dest);
+
+// Construct a 256 unsigned integer from a base 10 number string. The separator
+// character given will be permitted and skipped in the string if encountered,
+// e.g. ','. If no separator is permitted, pass 0 as the separator.
+INTC_API bool                           INTC_API_PREFIX(256_init_cstring)(char const *string, int size, struct intc_u256 *dest, char separator);
 
 // Interpret the 256 bit integer as a lower bit-type by using the lo bits of the
 // integer and truncating where necessary.
@@ -613,7 +623,7 @@ INTC_BEGIN_EXTERN_C
 // -----------------------------------------------------------------------------
 // NOTE: U128 Converters
 // -----------------------------------------------------------------------------
-INTC_API bool INTC_API_PREFIX(128_init_cstring)(char const *string, int size, struct intc_u128 *dest)
+INTC_API bool INTC_API_PREFIX(128_init_hex_cstring)(char const *string, int size, struct intc_u128 *dest)
 {
     if (string == 0 || size == 0 || !dest)
         return false;
@@ -646,6 +656,41 @@ INTC_API bool INTC_API_PREFIX(128_init_cstring)(char const *string, int size, st
 
         intc_u64 *word = (bits_written >= (int)(sizeof(dest->lo) * 8)) ? &dest->hi : &dest->lo;
         *word = *word | ((intc_u64)bits4 << bits_written);
+    }
+
+    return true;
+}
+
+INTC_API bool INTC_API_PREFIX(128_init_cstring)(char const *string, int size, struct intc_u128 *dest, char separator)
+{
+    if (string == 0 || size == 0 || !dest)
+        return false;
+
+    if (size < 0) {
+        for (size = 0; string[size]; size++)
+            ;
+    }
+
+    int const MAX_SIZE = sizeof("340282366920938463463374607431768211456") - 1; // 2^128
+    *dest = INTC_U128_ZERO;
+    for (int index = 0, digits_written = 0;
+         index < size;
+         index++)
+    {
+        if (digits_written >= MAX_SIZE)
+            return true;
+
+        char digit = string[index];
+        if (separator != 0 && digit == separator)
+            continue;
+
+        intc_u64 value = (digit >= '0' && digit <= '9') ? (digit - '0') : 0xFF;
+        if (value == 0xFF)
+            return false;
+
+        *dest = intc_u128_mul_u64(*dest, 10);
+        *dest = intc_u128_add_u64(*dest, value);
+        digits_written++;
     }
 
     return true;
@@ -1015,7 +1060,7 @@ INTC_API struct intc_u128_string INTC_API_PREFIX(128_str)(struct intc_u128 in, u
             div_result          = INTC_API_PREFIX(128_divmod)(div_result.quot, INTC_U64_TO_U128(base));
             val.data[val.size++] = "0123456789abcdefghijklmnopqrstuvwxyz"[div_result.rem.lo];
 
-            if (separate_every_n_chars > 0 && INTC_API_PREFIX(128_as_bool)(div_result.quot)) {
+            if (separate_ch && separate_every_n_chars > 0 && INTC_API_PREFIX(128_as_bool)(div_result.quot)) {
                 insert_count++;
                 if (insert_count % separate_every_n_chars == 0)
                     val.data[val.size++] = separate_ch;
@@ -1266,7 +1311,7 @@ INTC_BEGIN_EXTERN_C
 // -----------------------------------------------------------------------------
 // NOTE: U256 Converters
 // -----------------------------------------------------------------------------
-INTC_API bool INTC_API_PREFIX(256_init_cstring)(char const *string, int size, struct intc_u256 *dest)
+INTC_API bool INTC_API_PREFIX(256_init_hex_cstring)(char const *string, int size, struct intc_u256 *dest)
 {
     if (string == 0 || size == 0 || !dest)
         return false;
@@ -1288,13 +1333,13 @@ INTC_API bool INTC_API_PREFIX(256_init_cstring)(char const *string, int size, st
         buffer[pad_length + string_index] = string[string_index];
 
     int  half_buffer_size = sizeof(buffer) / 2;
-    bool result           = INTC_API_PREFIX(128_init_cstring)(buffer, half_buffer_size, &dest->hi);
-    result               |= INTC_API_PREFIX(128_init_cstring)(buffer + half_buffer_size, half_buffer_size, &dest->lo);
+    bool result           = INTC_API_PREFIX(128_init_hex_cstring)(buffer, half_buffer_size, &dest->hi);
+    result               |= INTC_API_PREFIX(128_init_hex_cstring)(buffer + half_buffer_size, half_buffer_size, &dest->lo);
 
     return result;
 }
 
-INTC_API bool INTC_API_PREFIX(256_init_cstring_base)(char const *string, int size, int base, struct intc_u256 *dest)
+INTC_API bool INTC_API_PREFIX(256_init_hex_cstring_base)(char const *string, int size, int base, struct intc_u256 *dest)
 {
     if (string == 0 || size == 0 || !dest || base <= 0)
         return false;
@@ -1327,6 +1372,31 @@ INTC_API bool INTC_API_PREFIX(256_init_cstring_base)(char const *string, int siz
     }
 
     return true;
+}
+
+INTC_API bool INTC_API_PREFIX(256_init_cstring)(char const *string, int size, struct intc_u256 *dest, char separator)
+{
+    if (string == 0 || size == 0 || !dest)
+        return false;
+
+    if (size < 0) {
+        for (size = 0; string[size]; size++)
+            ;
+    }
+
+    char buffer[64];
+    int pad_length = (int)sizeof(buffer) - size;
+    for (int pad_index = 0; pad_index < pad_length; pad_index++)
+        buffer[pad_index] = '0';
+
+    for (int string_index = 0; string_index < size; string_index++)
+        buffer[pad_length + string_index] = string[string_index];
+
+    int  half_buffer_size = sizeof(buffer) / 2;
+    bool result           = INTC_API_PREFIX(128_init_cstring)(buffer, half_buffer_size, &dest->hi, separator);
+    result               |= INTC_API_PREFIX(128_init_cstring)(buffer + half_buffer_size, half_buffer_size, &dest->lo, separator);
+
+    return result;
 }
 
 INTC_API bool INTC_API_PREFIX(256_as_bool)(struct intc_u256 in)
@@ -1743,7 +1813,7 @@ INTC_API struct intc_u256_string INTC_API_PREFIX(256_str)(struct intc_u256 in, u
             div_result          = INTC_API_PREFIX(256_divmod)(div_result.quot, INTC_U64_TO_U256(base));
             val.data[val.size++] = "0123456789abcdefghijklmnopqrstuvwxyz"[INTC_API_PREFIX(128_as_u32)(div_result.rem.lo)];
 
-            if (separate_every_n_chars > 0 && INTC_API_PREFIX(256_as_bool)(div_result.quot)) {
+            if (separate_ch && separate_every_n_chars > 0 && INTC_API_PREFIX(256_as_bool)(div_result.quot)) {
                 insert_count++;
                 if (insert_count % separate_every_n_chars == 0)
                     val.data[val.size++] = separate_ch;

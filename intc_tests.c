@@ -1199,30 +1199,37 @@ struct intc_test_state intc_u256_unit_tests(void)
         }
 
         {
-            INTC_TESTS_BEGIN("Constructor.string");
+            INTC_TESTS_BEGIN("Constructor.dataing");
             struct intc_u256 val;
-            INTC_TESTS_ASSERT(intc_u256_init_cstring("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1 /*size*/, &val));
+            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1 /*size*/, &val));
             INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_MAX),
                                  "val:    %s\n"
                                  "expect: %s\n",
                                  intc_u256_readable_hex_str(val).data,
                                  intc_u256_readable_hex_str(INTC_U256_MAX).data);
 
-            INTC_TESTS_ASSERT(intc_u256_init_cstring("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1 /*size*/, &val));
+            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1 /*size*/, &val));
             INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_MAX),
                                  "val:    %s\n"
                                  "expect: %s\n",
                                  intc_u256_readable_hex_str(val).data,
                                  intc_u256_readable_hex_str(INTC_U256_MAX).data);
 
+<<<<<<< HEAD
             INTC_TESTS_ASSERT(intc_u256_init_cstring("0x0", -1 /*size*/, &val));
             INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_ZERO), "val: %s\n", intc_u256_readable_hex_str(val).data);
 
             INTC_TESTS_ASSERT(intc_u256_init_cstring("0x0", -1 /*size*/, &val));
+=======
+            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring("0x0", -1 /*size*/, &val));
+            INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_ZERO), "val: %s\n", intc_u256_readable_hex_str(val).data);
+
+            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring("0x0", -1 /*size*/, &val));
+>>>>>>> f769dd0 (intc: Add number -> u128/256 constructor)
             INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_ZERO), "val: %s\n", intc_u256_readable_hex_str(val).data);
 
             struct intc_u256 expect = INTC_U64_TO_U256(0x0123456789abcdefULL);
-            INTC_TESTS_ASSERT(intc_u256_init_cstring("0x0123456789abcdef", -1 /*size*/, &val));
+            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring("0x0123456789abcdef", -1 /*size*/, &val));
             INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, expect),
                                  "val:    %s\n"
                                  "expect: %s\n",
@@ -1234,37 +1241,37 @@ struct intc_test_state intc_u256_unit_tests(void)
         {
             INTC_TESTS_BEGIN("Constructor.base_string");
             struct intc_u256 val;
-            INTC_TESTS_ASSERT(intc_u256_init_cstring_base("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1 /*size*/, 16 /*base*/, &val));
+            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring_base("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1 /*size*/, 16 /*base*/, &val));
             INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_MAX),
                                  "val:    %s\n"
                                  "expect: %s\n",
                                  intc_u256_readable_hex_str(val).data,
                                  intc_u256_readable_hex_str(INTC_U256_MAX).data);
 
-            INTC_TESTS_ASSERT(intc_u256_init_cstring_base("115792089237316195423570985008687907853269984665640564039457584007913129639935", -1 /*size*/, 10 /*base*/, &val));
+            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring_base("115792089237316195423570985008687907853269984665640564039457584007913129639935", -1 /*size*/, 10 /*base*/, &val));
             INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_MAX),
                                  "val:    %s\n"
                                  "expect: %s\n",
                                  intc_u256_readable_hex_str(val).data,
                                  intc_u256_readable_hex_str(INTC_U256_MAX).data);
 
-            INTC_TESTS_ASSERT(intc_u256_init_cstring_base("1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111", -1 /*size*/, 2 /*base*/, &val));
+            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring_base("1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111", -1 /*size*/, 2 /*base*/, &val));
             INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_MAX),
                                  "val:    %s\n"
                                  "expect: %s\n",
                                  intc_u256_readable_hex_str(val).data,
                                  intc_u256_readable_hex_str(INTC_U256_MAX).data);
 
-            INTC_TESTS_ASSERT(intc_u256_init_cstring_base("0", -1 /*size*/, 10 /*base*/, &val));
+            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring_base("0", -1 /*size*/, 10 /*base*/, &val));
             INTC_TESTS_ASSERT(intc_u256_eq(val, INTC_U256_ZERO));
 
-            INTC_TESTS_ASSERT(intc_u256_init_cstring_base("0x0123456789abcdef", -1 /*size*/, 16 /*base*/, &val));
+            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring_base("0x0123456789abcdef", -1 /*size*/, 16 /*base*/, &val));
             INTC_TESTS_ASSERT(intc_u256_eq(val, INTC_U64_TO_U256(0x0123456789abcdefULL)));
 
-            INTC_TESTS_ASSERT(intc_u256_init_cstring_base("755", -1 /*size*/, 8 /*base*/, &val));
+            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring_base("755", -1 /*size*/, 8 /*base*/, &val));
             INTC_TESTS_ASSERT(intc_u256_eq(val, INTC_U64_TO_U256(0x01ed)));
 
-            INTC_TESTS_ASSERT(intc_u256_init_cstring_base("31415926", -1 /*size*/, 10 /*base*/, &val));
+            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring_base("31415926", -1 /*size*/, 10 /*base*/, &val));
             INTC_TESTS_ASSERT(intc_u256_eq(val, INTC_U64_TO_U256(0x01df5e76ULL)));
             INTC_TESTS_END;
         }

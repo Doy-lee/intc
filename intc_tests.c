@@ -1,9 +1,7 @@
 #if !defined(INTC_TESTS_H)
 #define INTC_TESTS_H
 
-// -----------------------------------------------------------------------------
-// NOTE: Overview
-// -----------------------------------------------------------------------------
+// NOTE: Overview ==================================================================================
 // calccrypto's uint128/256 C++ tests converted into tests compatible with
 // intc.h variations. This file compiles down and exposes a couple of functions
 // that allow you to run the unit tests for "intc.h"
@@ -11,9 +9,7 @@
 // This file can be compiled standalone by defining the macro
 // INTC_TESTS_WITH_MAIN.
 //
-// -----------------------------------------------------------------------------
-// NOTE: Configuration
-// -----------------------------------------------------------------------------
+// NOTE: Configuration =============================================================================
 // #define INTC_TESTS_IMPLEMENTATION
 //     Define this in one and only one C++ file to enable the implementation
 //     code of the header file.
@@ -37,9 +33,7 @@
 #include <stdio.h>
 #include <string.h>
 
-// -----------------------------------------------------------------------------
-// NOTE: Data Structures
-// -----------------------------------------------------------------------------
+// NOTE: Data Structures ===========================================================================
 struct intc_test_state
 {
     int test_count;
@@ -53,9 +47,7 @@ struct intc_test_case
     bool        failed;
 };
 
-// -----------------------------------------------------------------------------
-// NOTE: Functions
-// -----------------------------------------------------------------------------
+// NOTE: Functions =================================================================================
 // Run the unit tests for intc_u128/u256 integer types.
 struct intc_test_state intc_u128_unit_tests();
 
@@ -132,9 +124,9 @@ intc_u64 const INTC_TESTS_MAX_UNSIGNED_VALUES[] = {
         {                                                                                                              \
             test_case_.failed = true;                                                                                  \
             char const *file  = intc_strip_path_to_file(__FILE__);                                                     \
-            printf("      +--Test failed at %s:%d, expression was: %s\n", file, __LINE__, #expr);                      \
-            printf("      V\n");                                                                                       \
-            printf("      |--");                                                                                       \
+            printf("+--Test failed at %s:%d, expression was: %s\n", file, __LINE__, #expr);                      \
+            printf("V\n");                                                                                       \
+            printf("|");                                                                                       \
             printf(fmt, __VA_ARGS__);                                                                                  \
             fputc('\n', stdout);                                                                                       \
         }                                                                                                              \
@@ -147,8 +139,8 @@ intc_u64 const INTC_TESTS_MAX_UNSIGNED_VALUES[] = {
         {                                                                                                              \
             test_case_.failed = true;                                                                                  \
             char const *file  = intc_strip_path_to_file(__FILE__);                                                     \
-            printf("      +--Test failed at %s:%d, expression was: %s\n", file, __LINE__, #expr);                      \
-            printf("      V\n");                                                                                       \
+            printf("+--Test failed at %s:%d, expression was: %s\n", file, __LINE__, #expr);                      \
+            printf("V\n");                                                                                       \
         }                                                                                                              \
     } while (0)
 
@@ -441,6 +433,85 @@ struct intc_test_state intc_u128_unit_tests(void)
             INTC_TESTS_ASSERT(f == (intc_u16)0x0123ULL);
             INTC_TESTS_ASSERT(g == (intc_u32)0x01234567ULL);
             INTC_TESTS_ASSERT(h == (intc_u64)0x0123456789abcdefULL);
+            INTC_TESTS_END;
+        }
+
+        {
+            INTC_TESTS_BEGIN("Constructor.data");
+            {
+                char const string[]                      = "0xffffffffffffffffffffffffffffffff";
+                struct intc_u128_init_result init_result = intc_u128_init_hex_cstring(string, sizeof(string) - 1, 0 /*separator*/);
+                INTC_TESTS_ASSERT(init_result.success);
+                INTC_TESTS_ASSERT_MSG(intc_u128_eq(init_result.value, INTC_U128_MAX),
+                                     "val:    %s\n"
+                                     "expect: %s\n",
+                                     intc_u128_readable_hex_str(init_result.value).data,
+                                     intc_u128_readable_hex_str(INTC_U128_MAX).data);
+            }
+
+            {
+                char const string[]                      = "ffffffffffffffffffffffffffffffff";
+                struct intc_u128_init_result init_result = intc_u128_init_hex_cstring(string, sizeof(string) - 1, 0 /*separator*/);
+                INTC_TESTS_ASSERT(init_result.success);
+                INTC_TESTS_ASSERT_MSG(intc_u128_eq(init_result.value, INTC_U128_MAX),
+                                     "val:    %s\n"
+                                     "expect: %s\n",
+                                     intc_u128_readable_hex_str(init_result.value).data,
+                                     intc_u128_readable_hex_str(INTC_U128_MAX).data);
+            }
+
+            {
+                char const string[]                      = "0xffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff";
+                struct intc_u128_init_result init_result = intc_u128_init_hex_cstring(string, sizeof(string) - 1, '\'');
+                INTC_TESTS_ASSERT(init_result.success);
+                INTC_TESTS_ASSERT_MSG(intc_u128_eq(init_result.value, INTC_U128_MAX),
+                                     "val:    %s\n"
+                                     "expect: %s\n",
+                                     intc_u128_readable_hex_str(init_result.value).data,
+                                     intc_u128_readable_hex_str(INTC_U128_MAX).data);
+            }
+
+            {
+                char const string[]                      = "ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff";
+                struct intc_u128_init_result init_result = intc_u128_init_hex_cstring(string, sizeof(string) - 1, '\'');
+                INTC_TESTS_ASSERT(init_result.success);
+                INTC_TESTS_ASSERT_MSG(intc_u128_eq(init_result.value, INTC_U128_MAX),
+                                     "val:    %s\n"
+                                     "expect: %s\n",
+                                     intc_u128_readable_hex_str(init_result.value).data,
+                                     intc_u128_readable_hex_str(INTC_U128_MAX).data);
+            }
+
+            {
+                char const string[]                      = "0xffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'f";
+                struct intc_u128_init_result init_result = intc_u128_init_hex_cstring(string, sizeof(string) - 1, '\'');
+                INTC_TESTS_ASSERT(!init_result.success);
+            }
+
+            {
+                char const string[]                      = "0xffff'ffff'ffff'ffff'ffff'ffff'ffff'fffg";
+                struct intc_u128_init_result init_result = intc_u128_init_hex_cstring(string, sizeof(string) - 1, '\'');
+                INTC_TESTS_ASSERT(!init_result.success);
+            }
+
+            {
+                char const string[]                      = "0x0";
+                struct intc_u128_init_result init_result = intc_u128_init_hex_cstring(string, sizeof(string) - 1, 0 /*separator*/);
+                INTC_TESTS_ASSERT_MSG(intc_u128_eq(init_result.value, INTC_U128_ZERO),
+                                      "val: %s\n",
+                                      intc_u128_readable_hex_str(init_result.value).data);
+            }
+
+            {
+                char const       string[]                = "0x0123456789abcdef";
+                struct intc_u128 expect                  = INTC_U64_TO_U128(0x0123456789abcdefULL);
+                struct intc_u128_init_result init_result = intc_u128_init_hex_cstring(string, sizeof(string) - 1, 0 /*separator*/);
+                INTC_TESTS_ASSERT_MSG(intc_u128_eq(init_result.value, expect),
+                                     "val:    %s\n"
+                                     "expect: %s\n",
+                                     intc_u128_readable_hex_str(init_result.value).data,
+                                     intc_u128_readable_hex_str(expect).data);
+            }
             INTC_TESTS_END;
         }
     }
@@ -1199,45 +1270,87 @@ struct intc_test_state intc_u256_unit_tests(void)
         }
 
         {
-            INTC_TESTS_BEGIN("Constructor.dataing");
-            struct intc_u256 val;
-            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1 /*size*/, &val));
-            INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_MAX),
-                                 "val:    %s\n"
-                                 "expect: %s\n",
-                                 intc_u256_readable_hex_str(val).data,
-                                 intc_u256_readable_hex_str(INTC_U256_MAX).data);
+            INTC_TESTS_BEGIN("Constructor.data");
+            {
+                char const string[]                      = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+                struct intc_u256_init_result init_result = intc_u256_init_hex_cstring(string, sizeof(string) - 1, 0 /*separator*/);
+                INTC_TESTS_ASSERT(init_result.success);
+                INTC_TESTS_ASSERT_MSG(intc_u256_eq(init_result.value, INTC_U256_MAX),
+                                     "val:    %s\n"
+                                     "expect: %s\n",
+                                     intc_u256_readable_hex_str(init_result.value).data,
+                                     intc_u256_readable_hex_str(INTC_U256_MAX).data);
+            }
 
-            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1 /*size*/, &val));
-            INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_MAX),
-                                 "val:    %s\n"
-                                 "expect: %s\n",
-                                 intc_u256_readable_hex_str(val).data,
-                                 intc_u256_readable_hex_str(INTC_U256_MAX).data);
+            {
+                char const string[]                      = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+                struct intc_u256_init_result init_result = intc_u256_init_hex_cstring(string, sizeof(string) - 1, 0 /*separator*/);
+                INTC_TESTS_ASSERT(init_result.success);
+                INTC_TESTS_ASSERT_MSG(intc_u256_eq(init_result.value, INTC_U256_MAX),
+                                     "val:    %s\n"
+                                     "expect: %s\n",
+                                     intc_u256_readable_hex_str(init_result.value).data,
+                                     intc_u256_readable_hex_str(INTC_U256_MAX).data);
+            }
 
-<<<<<<< HEAD
-            INTC_TESTS_ASSERT(intc_u256_init_cstring("0x0", -1 /*size*/, &val));
-            INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_ZERO), "val: %s\n", intc_u256_readable_hex_str(val).data);
+            {
+                char const string[]                      = "0xffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff";
+                struct intc_u256_init_result init_result = intc_u256_init_hex_cstring(string, sizeof(string) - 1, '\'');
+                INTC_TESTS_ASSERT(init_result.success);
+                INTC_TESTS_ASSERT_MSG(intc_u256_eq(init_result.value, INTC_U256_MAX),
+                                     "val:    %s\n"
+                                     "expect: %s\n",
+                                     intc_u256_readable_hex_str(init_result.value).data,
+                                     intc_u256_readable_hex_str(INTC_U256_MAX).data);
+            }
 
-            INTC_TESTS_ASSERT(intc_u256_init_cstring("0x0", -1 /*size*/, &val));
-=======
-            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring("0x0", -1 /*size*/, &val));
-            INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_ZERO), "val: %s\n", intc_u256_readable_hex_str(val).data);
+            {
+                char const string[]                      = "ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff";
+                struct intc_u256_init_result init_result = intc_u256_init_hex_cstring(string, sizeof(string) - 1, '\'');
+                INTC_TESTS_ASSERT(init_result.success);
+                INTC_TESTS_ASSERT_MSG(intc_u256_eq(init_result.value, INTC_U256_MAX),
+                                     "val:    %s\n"
+                                     "expect: %s\n",
+                                     intc_u256_readable_hex_str(init_result.value).data,
+                                     intc_u256_readable_hex_str(INTC_U256_MAX).data);
+            }
 
-            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring("0x0", -1 /*size*/, &val));
->>>>>>> f769dd0 (intc: Add number -> u128/256 constructor)
-            INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, INTC_U256_ZERO), "val: %s\n", intc_u256_readable_hex_str(val).data);
+            {
+                char const string[]                      = "0xffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff'f";
+                struct intc_u256_init_result init_result = intc_u256_init_hex_cstring(string, sizeof(string) - 1, '\'');
+                INTC_TESTS_ASSERT(!init_result.success);
+            }
 
-            struct intc_u256 expect = INTC_U64_TO_U256(0x0123456789abcdefULL);
-            INTC_TESTS_ASSERT(intc_u256_init_hex_cstring("0x0123456789abcdef", -1 /*size*/, &val));
-            INTC_TESTS_ASSERT_MSG(intc_u256_eq(val, expect),
-                                 "val:    %s\n"
-                                 "expect: %s\n",
-                                 intc_u256_readable_hex_str(val).data,
-                                 intc_u256_readable_hex_str(expect).data);
+            {
+                char const string[]                      = "0xffff'ffff'ffff'ffff'ffff'ffff'ffff'fffg'ffff'ffff'ffff'ffff'ffff'ffff'ffff'ffff";
+                struct intc_u256_init_result init_result = intc_u256_init_hex_cstring(string, sizeof(string) - 1, '\'');
+                INTC_TESTS_ASSERT(!init_result.success);
+            }
+
+            {
+                char const string[]                      = "0x0";
+                struct intc_u256_init_result init_result = intc_u256_init_hex_cstring(string, sizeof(string) - 1, 0 /*separator*/);
+                INTC_TESTS_ASSERT_MSG(intc_u256_eq(init_result.value, INTC_U256_ZERO),
+                                      "val: %s\n",
+                                      intc_u256_readable_hex_str(init_result.value).data);
+            }
+
+            {
+                char const       string[]                = "0x0123456789abcdef";
+                struct intc_u256 expect                  = INTC_U64_TO_U256(0x0123456789abcdefULL);
+                struct intc_u256_init_result init_result = intc_u256_init_hex_cstring(string, sizeof(string) - 1, 0 /*separator*/);
+                INTC_TESTS_ASSERT_MSG(intc_u256_eq(init_result.value, expect),
+                                     "val:    %s\n"
+                                     "expect: %s\n",
+                                     intc_u256_readable_hex_str(init_result.value).data,
+                                     intc_u256_readable_hex_str(expect).data);
+            }
             INTC_TESTS_END;
         }
 
+        // TODO: I got rid of the base functions because I wasn't happy with how it was implemented.
+        // Reimplement one day.
+        #if 0
         {
             INTC_TESTS_BEGIN("Constructor.base_string");
             struct intc_u256 val;
@@ -1275,6 +1388,7 @@ struct intc_test_state intc_u256_unit_tests(void)
             INTC_TESTS_ASSERT(intc_u256_eq(val, INTC_U64_TO_U256(0x01df5e76ULL)));
             INTC_TESTS_END;
         }
+        #endif
 
         {
             INTC_TESTS_BEGIN("Constructor.one");

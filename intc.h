@@ -1,7 +1,7 @@
 #if !defined(INTC_H)
 #define INTC_H
-// NOTE: Overview
-// -----------------------------------------------------------------------------
+// NOTE: Overview ==================================================================================
+//
 // calccrypto's uint128/256 C++ library converted into a single header file
 // C/C++ library with some additional C-isms/cosmetic configurations. Some of
 // the over-arching motivations of this library.
@@ -15,8 +15,7 @@
 //   operator overloading and constructors.
 //   (See Configuration > INTC_NO_CPP_FEATURES).
 //
-// NOTE: License
-// -----------------------------------------------------------------------------
+// NOTE: License ===================================================================================
 //
 // MIT License
 // Copyright (c) 2021 github.com/doy-lee
@@ -81,8 +80,7 @@
 //     #define INTC_API_PREFIX(expr) uint##expr
 //     intc_u128 value = uint128_add(INTC_U128(128, 128), INTC_U128(128, 128));
 //
-// NOTE: Examples
-// -----------------------------------------------------------------------------
+// NOTE: Examples ==================================================================================
 /*
     #define INTC_IMPLEMENTATION
     #include "intc.h"
@@ -109,19 +107,17 @@
     }
 
  */
-// NOTE: INTC Macros
-// -----------------------------------------------------------------------------
+
+// NOTE: INTC Macros ===============================================================================
 #if !defined(INTC_ASSERT)
     #if defined(NDEBUG)
         #define INTC_ASSERT(expr)
     #else
-        #define INTC_ASSERT(expr)                                                                  \
-            do                                                                                     \
-            {                                                                                      \
-                if (!(expr))                                                                       \
-                {                                                                                  \
-                    (*(volatile int *)0) = 0;                                                      \
-                }                                                                                  \
+        #define INTC_ASSERT(expr)             \
+            do {                              \
+                if (!(expr)) {                \
+                    (*(volatile int *)0) = 0; \
+                }                             \
             } while (0)
     #endif
 #endif
@@ -157,8 +153,7 @@
     #include <stdbool.h>
 #endif
 
-// NOTE: Typedefs
-// -----------------------------------------------------------------------------
+// NOTE: Typedefs ==================================================================================
 typedef unsigned char  intc_u8;
 typedef unsigned short intc_u16;
 typedef unsigned int   intc_u32;
@@ -169,15 +164,14 @@ typedef unsigned int   intc_uint;
     typedef unsigned long long intc_u64;
 #endif
 
-// NOTE: 128 Bit Unsigned Integer
-// -----------------------------------------------------------------------------
+// NOTE: 128 Bit Unsigned Integer ==================================================================
 struct intc_u128
 {
-#if !defined(INTC_NO_CPP_FEATURES)
+    #if !defined(INTC_NO_CPP_FEATURES)
     intc_u128() = default;
     intc_u128(intc_u64 lo) : lo(lo), hi(0) {}
     intc_u128(intc_u64 lo, intc_u64 hi) : lo(lo), hi(hi) {}
-#endif // INTC_NO_CPP_FEATURES
+    #endif // INTC_NO_CPP_FEATURES
 
     intc_u64 lo, hi;
 };
@@ -195,8 +189,13 @@ struct intc_u128_string
     int   size;
 };
 
-// NOTE: Constructors
-// -----------------------------------------------------------------------------
+struct intc_u128_init_result
+{
+    bool             success;
+    struct intc_u128 value;
+};
+
+// NOTE: Constructors ==============================================================================
 #if defined (__cplusplus)
     #define INTC_U128(lo, hi) intc_u128{(lo), (hi)}
     #define INTC_U128_MIN intc_u128{0, 0}
@@ -218,18 +217,22 @@ struct intc_u128_string
 #endif
 
 INTC_BEGIN_EXTERN_C
-// NOTE: U128 Converters
-// -----------------------------------------------------------------------------
+// NOTE: U128 Converters ===========================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u128_init_hex_cstring(...)
+//
 // Construct a 128 unsigned integer from a string. This function supports
 // hexadecimal strings with and without the 0x prefix i.e. "0xafc8a" or "afc8a"
 // or "0xAFC8A" or "xafc8a" .
-INTC_API bool                           INTC_API_PREFIX(128_init_hex_cstring)(const char *string, int size, struct intc_u128 *dest);
+//
+// The separator character given will be permitted and skipped in the string if
+// encountered, e.g. ','. If no separator is permitted, pass 0 as the separator.
+INTC_API struct intc_u128_init_result   INTC_API_PREFIX(128_init_hex_cstring)(const char *string, size_t size, char separator);
 
-// Construct a 128 unsigned integer from a base 10 number string. The separator
-// character given will be permitted and skipped in the string if encountered,
-// e.g. ','. If no separator is permitted, pass 0 as the separator.
-INTC_API bool                           INTC_API_PREFIX(128_init_cstring)(char const *string, int size, struct intc_u128 *dest, char separator);
+// Construct a 128 unsigned integer from a base 10 number string.
+//
+// The separator character given will be permitted and skipped in the string if
+// encountered, e.g. ','. If no separator is permitted, pass 0 as the separator.
+INTC_API struct intc_u128_init_result   INTC_API_PREFIX(128_init_cstring)(char const *string, size_t size, char separator);
 
 // Interpret the 128 bit integer as a lower bit-type by using the lo bits of the
 // integer and truncating where necessary.
@@ -239,8 +242,7 @@ INTC_API intc_u16                       INTC_API_PREFIX(128_as_u16)(struct intc_
 INTC_API intc_u32                       INTC_API_PREFIX(128_as_u32)(struct intc_u128 in);
 INTC_API intc_u64                       INTC_API_PREFIX(128_as_u64)(struct intc_u128 in);
 
-// NOTE: U128 Bitwise
-// -----------------------------------------------------------------------------
+// NOTE: U128 Bitwise ==============================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u128_and(...)
 INTC_API struct intc_u128               INTC_API_PREFIX(128_and)(struct intc_u128 lhs, struct intc_u128 rhs);
 INTC_API struct intc_u128               INTC_API_PREFIX(128_or)(struct intc_u128 lhs, struct intc_u128 rhs);
@@ -249,35 +251,30 @@ INTC_API struct intc_u128               INTC_API_PREFIX(128_negate)(struct intc_
 INTC_API struct intc_u128               INTC_API_PREFIX(128_lshift)(struct intc_u128 lhs, unsigned rhs);
 INTC_API struct intc_u128               INTC_API_PREFIX(128_rshift)(struct intc_u128 lhs, unsigned rhs);
 
-// NOTE: U128 Equality
-// -----------------------------------------------------------------------------
+// NOTE: U128 Equality =============================================================================
 // If INTC_API_PREFIX not defined then, for example: intc_u128_eq(...)
 INTC_API bool                           INTC_API_PREFIX(128_eq)(struct intc_u128 lhs, struct intc_u128 rhs);
 INTC_API bool                           INTC_API_PREFIX(128_neq)(struct intc_u128 lhs, struct intc_u128 rhs);
 
-// NOTE: U128 Equality U64 Helpers
-// -----------------------------------------------------------------------------
+// NOTE: U128 Equality U64 Helpers =================================================================
 INTC_API bool                           INTC_API_PREFIX(128_eq_u64)(struct intc_u128 lhs, intc_u64 rhs);
 INTC_API bool                           INTC_API_PREFIX(128_neq_u64)(struct intc_u128 lhs, intc_u64 rhs);
 
-// NOTE: U128 Relational
-// -----------------------------------------------------------------------------
+// NOTE: U128 Relational ===========================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u128_gt(...)
 INTC_API bool                           INTC_API_PREFIX(128_gt)(struct intc_u128 lhs, struct intc_u128 rhs);
 INTC_API bool                           INTC_API_PREFIX(128_lt)(struct intc_u128 lhs, struct intc_u128 rhs);
 INTC_API bool                           INTC_API_PREFIX(128_gt_eq)(struct intc_u128 lhs, struct intc_u128 rhs);
 INTC_API bool                           INTC_API_PREFIX(128_lt_eq)(struct intc_u128 lhs, struct intc_u128 rhs);
 
-// NOTE: U128 Relational U64 Helpers
-// -----------------------------------------------------------------------------
+// NOTE: U128 Relational U64 Helpers ===============================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u128_gt_u64(...)
 INTC_API bool                           INTC_API_PREFIX(128_gt_u64)(struct intc_u128 lhs, intc_u64 rhs);
 INTC_API bool                           INTC_API_PREFIX(128_lt_u64)(struct intc_u128 lhs, intc_u64 rhs);
 INTC_API bool                           INTC_API_PREFIX(128_gt_eq_u64)(struct intc_u128 lhs, intc_u64 rhs);
 INTC_API bool                           INTC_API_PREFIX(128_lt_eq_u64)(struct intc_u128 lhs, intc_u64 rhs);
 
-// NOTE: U128 Arithmetic
-// -----------------------------------------------------------------------------
+// NOTE: U128 Arithmetic ===========================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u128_add(...)
 INTC_API struct intc_u128               INTC_API_PREFIX(128_add)(struct intc_u128 lhs, struct intc_u128 rhs);
 INTC_API struct intc_u128               INTC_API_PREFIX(128_sub)(struct intc_u128 lhs, struct intc_u128 rhs);
@@ -286,8 +283,7 @@ INTC_API struct intc_u128_divmod_result INTC_API_PREFIX(128_divmod)(struct intc_
 INTC_API struct intc_u128               INTC_API_PREFIX(128_div)(struct intc_u128 lhs, struct intc_u128 rhs);
 INTC_API struct intc_u128               INTC_API_PREFIX(128_mod)(struct intc_u128 lhs, struct intc_u128 rhs);
 
-// NOTE: U128 Arithmetic U64 Helpers
-// -----------------------------------------------------------------------------
+// NOTE: U128 Arithmetic U64 Helpers ===============================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u128_add_u64(...)
 INTC_API struct intc_u128               INTC_API_PREFIX(128_add_u64)(struct intc_u128 lhs, intc_u64 rhs);
 INTC_API struct intc_u128               INTC_API_PREFIX(128_sub_u64)(struct intc_u128 lhs, intc_u64 rhs);
@@ -296,13 +292,11 @@ INTC_API struct intc_u128_divmod_result INTC_API_PREFIX(128_divmod_u64)(struct i
 INTC_API struct intc_u128               INTC_API_PREFIX(128_div_u64)(struct intc_u128 lhs, intc_u64 rhs);
 INTC_API struct intc_u128               INTC_API_PREFIX(128_mod_u64)(struct intc_u128 lhs, intc_u64 rhs);
 
-// NOTE: U128 Misc
-// -----------------------------------------------------------------------------
+// NOTE: U128 Misc =================================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u128_clz(...)
 INTC_API int                            INTC_API_PREFIX(128_clz)(struct intc_u128 in); // CLZ (Count leading zeros)
 
-// NOTE: U128 Printing
-// -----------------------------------------------------------------------------
+// NOTE: U128 Printing =============================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u128_str(...)
 
 // TODO(dqn): Add API for letting user pass in a buffer and we write into it.
@@ -316,17 +310,17 @@ INTC_API int                            INTC_API_PREFIX(128_clz)(struct intc_u12
 // return: The integer converted to a string, on failure, an empty string is
 // returned. The string is always null-terminated. The string's size is not
 // inclusive of the null-terminator.
-INTC_API struct intc_u128_string        INTC_API_PREFIX(128_str)(struct intc_u128 in, unsigned base, int separate_every_n_chars, char separate_ch);
+INTC_API struct intc_u128_string        INTC_API_PREFIX(128_str)(struct intc_u128 in, unsigned base, size_t separate_every_n_chars, char separate_ch);
 
 // Helper function that calls intc_u128_str with base 10 (i.e. human readable).
-INTC_API struct intc_u128_string        INTC_API_PREFIX(128_int_str)(struct intc_u128 in, int separate_every_n_chars, char separate_ch);
+INTC_API struct intc_u128_string        INTC_API_PREFIX(128_int_str)(struct intc_u128 in, size_t separate_every_n_chars, char separate_ch);
 
 // Helper function that calls intc_u128_str with base 10 (i.e. human readable),
 // seperated by the thousands with a comma, i.e. 1,000.
 INTC_API struct intc_u128_string        INTC_API_PREFIX(128_readable_int_str)(struct intc_u128 in);
 
 // Helper function that calls intc_u128_str with base 16 (i.e. hex)
-INTC_API struct intc_u128_string        INTC_API_PREFIX(128_hex_str)(struct intc_u128 in, int separate_every_n_chars, char separate_ch);
+INTC_API struct intc_u128_string        INTC_API_PREFIX(128_hex_str)(struct intc_u128 in, size_t separate_every_n_chars, char separate_ch);
 
 // Helper function that calls intc_u128_str with base 16 (i.e. hex), seperated
 // every 4 hex characters with '_', i.e. ffff_ffff
@@ -334,8 +328,7 @@ INTC_API struct intc_u128_string        INTC_API_PREFIX(128_readable_hex_str)(st
 INTC_END_EXTERN_C
 
 #if !defined(INTC_NO_CPP_FEATURES)
-// NOTE: U128 CPP Bitwise
-// -----------------------------------------------------------------------------
+// NOTE: U128 CPP Bitwise ==========================================================================
 INTC_API intc_u128 operator&(intc_u128 lhs, intc_u128 rhs);
 INTC_API intc_u128 operator|(intc_u128 lhs, intc_u128 rhs);
 INTC_API intc_u128 operator^(intc_u128 lhs, intc_u128 rhs);
@@ -343,28 +336,24 @@ INTC_API intc_u128 operator~(intc_u128 lhs);
 INTC_API intc_u128 operator<<(intc_u128 lhs, unsigned rhs);
 INTC_API intc_u128 operator>>(intc_u128 lhs, unsigned rhs);
 
-// NOTE: U128 CPP Equality
-// -----------------------------------------------------------------------------
+// NOTE: U128 CPP Equality =========================================================================
 INTC_API bool operator==(intc_u128 lhs, intc_u128 rhs);
 INTC_API bool operator!=(intc_u128 lhs, intc_u128 rhs);
 
-// NOTE: U128 CPP Relational
-// -----------------------------------------------------------------------------
+// NOTE: U128 CPP Relational =======================================================================
 INTC_API bool operator>(intc_u128 lhs, intc_u128 rhs);
 INTC_API bool operator<(intc_u128 lhs, intc_u128 rhs);
 INTC_API bool operator>=(intc_u128 lhs, intc_u128 rhs);
 INTC_API bool operator<=(intc_u128 lhs, intc_u128 rhs);
 
-// NOTE: U128 CPP Arithmetic
-// -----------------------------------------------------------------------------
+// NOTE: U128 CPP Arithmetic =======================================================================
 INTC_API intc_u128 operator+(intc_u128 lhs, intc_u128 rhs);
 INTC_API intc_u128 operator-(intc_u128 lhs, intc_u128 rhs);
 INTC_API intc_u128 operator*(intc_u128 lhs, intc_u128 rhs);
 INTC_API intc_u128 operator/(intc_u128 lhs, intc_u128 rhs);
 INTC_API intc_u128 operator%(intc_u128 lhs, intc_u128 rhs);
 
-// NOTE: U128 CPP Other
-// -----------------------------------------------------------------------------
+// NOTE: U128 CPP Other ============================================================================
 INTC_API intc_u128 &operator&=(intc_u128 &lhs, intc_u128 rhs);
 INTC_API intc_u128 &operator|=(intc_u128 &lhs, intc_u128 rhs);
 INTC_API intc_u128 &operator^=(intc_u128 &lhs, intc_u128 rhs);
@@ -383,17 +372,16 @@ INTC_API intc_u128  operator++(intc_u128 &lhs, int);
 INTC_API intc_u128  operator--(intc_u128 &lhs, int);
 #endif // !defined(INTC_NO_CPP_FEATURES)
 
-// NOTE: 256 Bit Unsigned Integer
-// -----------------------------------------------------------------------------
+// NOTE: 256 Bit Unsigned Integer ==================================================================
 #if !defined(INTC_NO_U256)
 struct intc_u256
 {
-#if !defined(INTC_NO_CPP_FEATURES)
+    #if !defined(INTC_NO_CPP_FEATURES)
     intc_u256() = default;
     intc_u256(intc_u64 lo_u64) { *this = {}; this->lo.lo = lo_u64; }
     intc_u256(intc_u128 lo)    { *this = {}; this->lo    = lo; }
     intc_u256(intc_u128 lo, intc_u128 hi) : lo(lo), hi(hi) {}
-#endif // INTC_NO_CPP_FEATURES
+    #endif // INTC_NO_CPP_FEATURES
 
     struct intc_u128 lo, hi;
 };
@@ -411,8 +399,13 @@ struct intc_u256_string
     int   size;
 };
 
-// NOTE: U256 Constructors
-// -----------------------------------------------------------------------------
+struct intc_u256_init_result
+{
+    bool             success;
+    struct intc_u256 value;
+};
+
+// NOTE: U256 Constructors =========================================================================
 #if defined(__cplusplus)
     #define INTC_U256(lo, hi) intc_u256{lo, hi}
     #define INTC_U256_MIN intc_u256{INTC_U128_MIN, INTC_U128_MIN}
@@ -438,24 +431,22 @@ struct intc_u256_string
 #endif
 
 INTC_BEGIN_EXTERN_C
-// NOTE: U256 Converters
-// -----------------------------------------------------------------------------
+// NOTE: U256 Converters ===========================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u256_init_hex_cstring(...)
+//
 // Construct a 128 unsigned integer from a string. This function supports
 // hexadecimal strings with and without the 0x prefix i.e. "0xafc8a" or "afc8a"
 // or "0xAFC8A" or "xafc8a".
-INTC_API bool                           INTC_API_PREFIX(256_init_hex_cstring)(char const *string, int size, struct intc_u256 *dest);
+//
+// The separator character given will be permitted and skipped in the string if
+// encountered, e.g. ','. If no separator is permitted, pass 0 as the separator.
+INTC_API struct intc_u256_init_result   INTC_API_PREFIX(256_init_hex_cstring)(char const *string, size_t size, char separator);
 
-// TODO(dqn): We should support all the bases that the printing functions work
-// with so you can always do a round-trip store and load from disk.
-// Similar to above except the base of the number can be specified, base must be
-// between (2 < base < 17).
-INTC_API bool                           INTC_API_PREFIX(256_init_hex_cstring_base)(char const *string, int size, int base, struct intc_u256 *dest);
-
-// Construct a 256 unsigned integer from a base 10 number string. The separator
-// character given will be permitted and skipped in the string if encountered,
-// e.g. ','. If no separator is permitted, pass 0 as the separator.
-INTC_API bool                           INTC_API_PREFIX(256_init_cstring)(char const *string, int size, struct intc_u256 *dest, char separator);
+// Construct a 256 unsigned integer from a base 10 number string.
+//
+// The separator character given will be permitted and skipped in the string if
+// encountered, e.g. ','. If no separator is permitted, pass 0 as the separator.
+INTC_API struct intc_u256_init_result   INTC_API_PREFIX(256_init_cstring)(char const *string, size_t size, char separator);
 
 // Interpret the 256 bit integer as a lower bit-type by using the lo bits of the
 // integer and truncating where necessary.
@@ -466,8 +457,7 @@ INTC_API intc_u32                       INTC_API_PREFIX(256_as_u32)(struct intc_
 INTC_API intc_u64                       INTC_API_PREFIX(256_as_u64)(struct intc_u256 in);
 INTC_API struct intc_u128               INTC_API_PREFIX(256_as_u128)(struct intc_u256 in);
 
-// NOTE: U256 Bitwise
-// -----------------------------------------------------------------------------
+// NOTE: U256 Bitwise ==============================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u256_and(...)
 INTC_API struct intc_u256               INTC_API_PREFIX(256_and)(struct intc_u256 lhs, struct intc_u256 rhs);
 INTC_API struct intc_u256               INTC_API_PREFIX(256_or)(struct intc_u256 lhs, struct intc_u256 rhs);
@@ -481,36 +471,31 @@ INTC_API struct intc_u256               INTC_API_PREFIX(256_negate)(struct intc_
 INTC_API struct intc_u256               INTC_API_PREFIX(256_lshift)(struct intc_u256 lhs, unsigned shift);
 INTC_API struct intc_u256               INTC_API_PREFIX(256_rshift)(struct intc_u256 lhs, unsigned shift);
 
-// NOTE: U256 Equality
-// -----------------------------------------------------------------------------
+// NOTE: U256 Equality =============================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u256_eq(...)
 INTC_API bool                           INTC_API_PREFIX(256_eq)(struct intc_u256 lhs, struct intc_u256 rhs);
 INTC_API bool                           INTC_API_PREFIX(256_neq)(struct intc_u256 lhs, struct intc_u256 rhs);
 
-// NOTE: U256 Equality U64 Helpers
-// -----------------------------------------------------------------------------
+// NOTE: U256 Equality U64 Helpers =================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u256_eq_u64(...)
 INTC_API bool                           INTC_API_PREFIX(256_eq_u64)(struct intc_u256 lhs, intc_u64 rhs);
 INTC_API bool                           INTC_API_PREFIX(256_neq_u64)(struct intc_u256 lhs, intc_u64 rhs);
 
-// NOTE: U256 Relational
-// -----------------------------------------------------------------------------
+// NOTE: U256 Relational ===========================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u256_gt(...)
 INTC_API bool                           INTC_API_PREFIX(256_gt)(struct intc_u256 lhs, struct intc_u256 rhs);
 INTC_API bool                           INTC_API_PREFIX(256_lt)(struct intc_u256 lhs, struct intc_u256 rhs);
 INTC_API bool                           INTC_API_PREFIX(256_gt_eq)(struct intc_u256 lhs, struct intc_u256 rhs);
 INTC_API bool                           INTC_API_PREFIX(256_lt_eq)(struct intc_u256 lhs, struct intc_u256 rhs);
 
-// NOTE: U256 Relational U64 Helpers
-// -----------------------------------------------------------------------------
+// NOTE: U256 Relational U64 Helpers ===============================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u256_gt_u64(...)
 INTC_API bool                           INTC_API_PREFIX(256_gt_u64)(struct intc_u256 lhs, intc_u64 rhs);
 INTC_API bool                           INTC_API_PREFIX(256_lt_u64)(struct intc_u256 lhs, intc_u64 rhs);
 INTC_API bool                           INTC_API_PREFIX(256_gt_eq_u64)(struct intc_u256 lhs, intc_u64 rhs);
 INTC_API bool                           INTC_API_PREFIX(256_lt_eq_u64)(struct intc_u256 lhs, intc_u64 rhs);
 
-// NOTE: U256 Arithmetic
-// -----------------------------------------------------------------------------
+// NOTE: U256 Arithmetic ===========================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u256_add(...)
 INTC_API struct intc_u256               INTC_API_PREFIX(256_add)(struct intc_u256 lhs, struct intc_u256 rhs);
 INTC_API struct intc_u256               INTC_API_PREFIX(256_sub)(struct intc_u256 lhs, struct intc_u256 rhs);
@@ -526,13 +511,11 @@ INTC_API struct intc_u256_divmod_result INTC_API_PREFIX(256_divmod_u64)(struct i
 INTC_API struct intc_u256               INTC_API_PREFIX(256_div_u64)(struct intc_u256 lhs, intc_u64 rhs);
 INTC_API struct intc_u256               INTC_API_PREFIX(256_mod_u64)(struct intc_u256 lhs, intc_u64 rhs);
 
-// NOTE: U256 Misc
-// -----------------------------------------------------------------------------
+// NOTE: U256 Misc =================================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u256_clz(...)
 INTC_API int                            INTC_API_PREFIX(256_clz)(struct intc_u256 in);
 
-// NOTE: U256 Printing
-// -----------------------------------------------------------------------------
+// NOTE: U256 Printing =============================================================================
 // Reminder: If INTC_API_PREFIX is not defined, example API looks like: intc_u256_str(...)
 // Convert the 256 bit unsigned integer into a string.
 // base: The number system base to print the string as where base must be (2 < base < 36).
@@ -543,17 +526,17 @@ INTC_API int                            INTC_API_PREFIX(256_clz)(struct intc_u25
 // return: The integer converted to a string, on failure, an empty string is
 // returned. The string is always null-terminated. The string's size is not
 // inclusive of the null-terminator.
-INTC_API struct intc_u256_string        INTC_API_PREFIX(256_str)(struct intc_u256 in, unsigned base, int separate_every_n_chars, char separate_ch);
+INTC_API struct intc_u256_string        INTC_API_PREFIX(256_str)(struct intc_u256 in, unsigned base, size_t separate_every_n_chars, char separate_ch);
 
 // Helper function that calls intc_u256_str with base 10 (i.e. human readable).
-INTC_API struct intc_u256_string        INTC_API_PREFIX(256_int_str)(struct intc_u256 in, int separate_every_n_chars, char separate_ch);
+INTC_API struct intc_u256_string        INTC_API_PREFIX(256_int_str)(struct intc_u256 in, size_t separate_every_n_chars, char separate_ch);
 
 // Helper function that calls intc_u256_str with base 10 (i.e. human readable),
 // seperated by the thousands with a comma, i.e. 1,000.
 INTC_API struct intc_u256_string        INTC_API_PREFIX(256_readable_int_str)(struct intc_u256 in);
 
 // Helper function that calls intc_u256_str with base 16 (i.e. hex)
-INTC_API struct intc_u256_string        INTC_API_PREFIX(256_hex_str)(struct intc_u256 in, int separate_every_n_chars, char separate_ch);
+INTC_API struct intc_u256_string        INTC_API_PREFIX(256_hex_str)(struct intc_u256 in, size_t separate_every_n_chars, char separate_ch);
 
 // Helper function that calls intc_u256_str with base 16 (i.e. hex), seperated
 // every 4 hex characters with '_', i.e. ffff_ffff
@@ -561,8 +544,7 @@ INTC_API struct intc_u256_string        INTC_API_PREFIX(256_readable_hex_str)(st
 INTC_END_EXTERN_C
 
 #if !defined(INTC_NO_CPP_FEATURES)
-// NOTE: U256 CPP Bitwise
-// -----------------------------------------------------------------------------
+// NOTE: U256 CPP Bitwise ==========================================================================
 INTC_API intc_u256 operator&(intc_u256 lhs, intc_u256 rhs);
 INTC_API intc_u256 operator|(intc_u256 lhs, intc_u256 rhs);
 INTC_API intc_u256 operator^(intc_u256 lhs, intc_u256 rhs);
@@ -570,28 +552,24 @@ INTC_API intc_u256 operator~(intc_u256 lhs);
 INTC_API intc_u256 operator<<(intc_u256 lhs, unsigned rhs);
 INTC_API intc_u256 operator>>(intc_u256 lhs, unsigned rhs);
 
-// NOTE: U256 CPP Equality
-// -----------------------------------------------------------------------------
+// NOTE: U256 CPP Equality =========================================================================
 INTC_API bool operator==(intc_u256 lhs, intc_u256 rhs);
 INTC_API bool operator!=(intc_u256 lhs, intc_u256 rhs);
 
-// NOTE: U256 CPP Relational
-// -----------------------------------------------------------------------------
+// NOTE: U256 CPP Relational =======================================================================
 INTC_API bool operator>(intc_u256 lhs, intc_u256 rhs);
 INTC_API bool operator<(intc_u256 lhs, intc_u256 rhs);
 INTC_API bool operator>=(intc_u256 lhs, intc_u256 rhs);
 INTC_API bool operator<=(intc_u256 lhs, intc_u256 rhs);
 
-// NOTE: U256 CPP Arithmetic
-// -----------------------------------------------------------------------------
+// NOTE: U256 CPP Arithmetic =======================================================================
 INTC_API intc_u256 operator+(intc_u256 lhs, intc_u256 rhs);
 INTC_API intc_u256 operator-(intc_u256 lhs, intc_u256 rhs);
 INTC_API intc_u256 operator*(intc_u256 lhs, intc_u256 rhs);
 INTC_API intc_u256 operator/(intc_u256 lhs, intc_u256 rhs);
 INTC_API intc_u256 operator%(intc_u256 lhs, intc_u256 rhs);
 
-// NOTE: U256 CPP Other
-// -----------------------------------------------------------------------------
+// NOTE: U256 CPP Other ============================================================================
 INTC_API intc_u256 &operator&=(intc_u256 &lhs, intc_u256 rhs);
 INTC_API intc_u256 &operator|=(intc_u256 &lhs, intc_u256 rhs);
 INTC_API intc_u256 &operator^=(intc_u256 &lhs, intc_u256 rhs);
@@ -619,66 +597,55 @@ static bool const INTC__U32_IS_32_BITS[sizeof(intc_u32) == 4 ? 1 : -1] = INTC_ZE
 static bool const INTC__U64_IS_64_BITS[sizeof(intc_u64) == 8 ? 1 : -1] = INTC_ZERO_INIT;
 
 INTC_BEGIN_EXTERN_C
-// NOTE: 128 Bit Unsigned Integer
-// -----------------------------------------------------------------------------
-// NOTE: U128 Converters
-// -----------------------------------------------------------------------------
-INTC_API bool INTC_API_PREFIX(128_init_hex_cstring)(char const *string, int size, struct intc_u128 *dest)
+// NOTE: 128 Bit Unsigned Integer ==================================================================
+// NOTE: U128 Converters ===========================================================================
+INTC_API struct intc_u128_init_result INTC_API_PREFIX(128_init_hex_cstring)(char const *string, size_t size, char separator)
 {
-    if (string == 0 || size == 0 || !dest)
-        return false;
+    struct intc_u128_init_result result = INTC_ZERO_INIT;
+    if (string == 0 || size <= 0)
+        return result;
 
-    if (size < 0) {
-        for (size = 0; string[size]; size++)
-            ;
-    }
+    if      (size >= 2 && string[0] == '0' && string[1] == 'x') { string += 2; size -= 2; }
+    else if (size >= 1 && string[0] == 'x')                     { string += 1; size -= 1; }
 
-    if      (size >= 2 && string[1] == 'x') { string += 2; size -= 2; }
-    else if (size >= 1 && string[0] == 'x') { string += 1; size -= 1; }
+    struct intc_u128 dest = INTC_ZERO_INIT;
+    for (size_t index = size - 1, bits_written = 0; index < size; index--) {
+        if (bits_written >= (sizeof(dest) * 8))
+            return result;
 
-    *dest = INTC_U128_ZERO;
+        char hex_ch = string[index];
+        if (separator != 0 && hex_ch == separator)
+            continue;
 
-    for (int index = size - 1, bits_written = 0;
-         index >= 0;
-         index--, bits_written += 4)
-    {
-        if (bits_written >= (int)(sizeof(*dest) * 8))
-            return true;
-
-        char hex_ch         = string[index];
         unsigned char bits4 =   (hex_ch >= '0' && hex_ch <= '9') ?  0 + (hex_ch - '0')
                               : (hex_ch >= 'a' && hex_ch <= 'f') ? 10 + (hex_ch - 'a')
                               : (hex_ch >= 'A' && hex_ch <= 'F') ? 10 + (hex_ch - 'A')
                               : 0xFF;
 
         if (bits4 == 0xFF)
-            return false;
+            return result;
 
-        intc_u64 *word = (bits_written >= (int)(sizeof(dest->lo) * 8)) ? &dest->hi : &dest->lo;
-        *word = *word | ((intc_u64)bits4 << bits_written);
+        struct intc_u128 bits4_as_u128 = INTC_U64_TO_U128(bits4);
+        dest                           = INTC_API_PREFIX(128_or)(dest, (INTC_API_PREFIX(128_lshift)(bits4_as_u128, (unsigned)bits_written)));
+        bits_written += 4;
     }
 
-    return true;
+    result.value   = dest;
+    result.success = true;
+    return result;
 }
 
-INTC_API bool INTC_API_PREFIX(128_init_cstring)(char const *string, int size, struct intc_u128 *dest, char separator)
+size_t const INTC_API_PREFIX(U128_MAX_STRING_SIZE) = sizeof("340282366920938463463374607431768211455") - 1; // 2^128
+INTC_API struct intc_u128_init_result INTC_API_PREFIX(128_init_cstring)(char const *string, size_t size, char separator)
 {
-    if (string == 0 || size == 0 || !dest)
-        return false;
+    struct intc_u128_init_result result = INTC_ZERO_INIT;
+    if (string == 0 || size <= 0)
+        return result;
 
-    if (size < 0) {
-        for (size = 0; string[size]; size++)
-            ;
-    }
-
-    int const MAX_SIZE = sizeof("340282366920938463463374607431768211456") - 1; // 2^128
-    *dest = INTC_U128_ZERO;
-    for (int index = 0, digits_written = 0;
-         index < size;
-         index++)
-    {
-        if (digits_written >= MAX_SIZE)
-            return true;
+    struct intc_u128 dest = INTC_ZERO_INIT;
+    for (size_t index = 0, digits_written = 0; index < size; index++) {
+        if (digits_written >= INTC_API_PREFIX(U128_MAX_STRING_SIZE))
+            return result;
 
         char digit = string[index];
         if (separator != 0 && digit == separator)
@@ -686,14 +653,16 @@ INTC_API bool INTC_API_PREFIX(128_init_cstring)(char const *string, int size, st
 
         intc_u64 value = (digit >= '0' && digit <= '9') ? (digit - '0') : 0xFF;
         if (value == 0xFF)
-            return false;
+            return result;
 
-        *dest = intc_u128_mul_u64(*dest, 10);
-        *dest = intc_u128_add_u64(*dest, value);
+        dest = intc_u128_mul_u64(dest, 10);
+        dest = intc_u128_add_u64(dest, value);
         digits_written++;
     }
 
-    return true;
+    result.value   = dest;
+    result.success = true;
+    return result;
 }
 
 INTC_API bool INTC_API_PREFIX(128_as_bool)(struct intc_u128 in)
@@ -726,8 +695,7 @@ INTC_API intc_u64 INTC_API_PREFIX(128_as_u64)(struct intc_u128 in)
     return result;
 }
 
-// NOTE: U128 Bitwise
-// -----------------------------------------------------------------------------
+// NOTE: U128 Bitwise ==============================================================================
 INTC_API struct intc_u128 INTC_API_PREFIX(128_and)(struct intc_u128 lhs, struct intc_u128 rhs)
 {
     struct intc_u128 result = INTC_U128(lhs.lo & rhs.lo, lhs.hi & rhs.hi);
@@ -792,8 +760,7 @@ INTC_API struct intc_u128 INTC_API_PREFIX(128_rshift)(struct intc_u128 lhs, unsi
     return INTC_U128_ZERO;
 }
 
-// NOTE: U128 Equality
-// -----------------------------------------------------------------------------
+// NOTE: U128 Equality =============================================================================
 INTC_API bool INTC_API_PREFIX(128_eq)(struct intc_u128 lhs, struct intc_u128 rhs)
 {
     bool result = ((lhs.lo == rhs.lo) && (lhs.hi == rhs.hi));
@@ -806,8 +773,7 @@ INTC_API bool INTC_API_PREFIX(128_neq)(struct intc_u128 lhs, struct intc_u128 rh
     return result;
 }
 
-// NOTE: U128 Equality U64 Helpers
-// -----------------------------------------------------------------------------
+// NOTE: U128 Equality U64 Helpers =================================================================
 INTC_API bool INTC_API_PREFIX(128_eq_u64)(struct intc_u128 lhs, intc_u64 rhs)
 {
     bool result = INTC_API_PREFIX(128_eq)(lhs, INTC_U64_TO_U128(rhs));
@@ -820,8 +786,7 @@ INTC_API bool INTC_API_PREFIX(128_neq_u64)(struct intc_u128 lhs, intc_u64 rhs)
     return result;
 }
 
-// NOTE: U128 Relational
-// -----------------------------------------------------------------------------
+// NOTE: U128 Relational ===========================================================================
 INTC_API bool INTC_API_PREFIX(128_gt)(struct intc_u128 lhs, struct intc_u128 rhs)
 {
     bool result = (lhs.hi == rhs.hi) ? (lhs.lo > rhs.lo) : (lhs.hi > rhs.hi);
@@ -846,8 +811,7 @@ INTC_API bool INTC_API_PREFIX(128_lt_eq)(struct intc_u128 lhs, struct intc_u128 
     return result;
 }
 
-// NOTE: U128 Relational U64 Helpers
-// -----------------------------------------------------------------------------
+// NOTE: U128 Relational U64 Helpers ===============================================================
 INTC_API bool INTC_API_PREFIX(128_gt_u64)(struct intc_u128 lhs, intc_u64 rhs)
 {
     bool result = INTC_API_PREFIX(128_gt)(lhs, INTC_U64_TO_U128(rhs));
@@ -872,8 +836,7 @@ INTC_API bool INTC_API_PREFIX(128_lt_eq_u64)(struct intc_u128 lhs, intc_u64 rhs)
     return result_eq;
 }
 
-// NOTE: U128 Arithmetic
-// -----------------------------------------------------------------------------
+// NOTE: U128 Arithmetic ===========================================================================
 INTC_API struct intc_u128 INTC_API_PREFIX(128_add)(struct intc_u128 lhs, struct intc_u128 rhs)
 {
     struct intc_u128 result = INTC_U128(lhs.lo + rhs.lo, lhs.hi + rhs.hi + ((lhs.lo + rhs.lo) < lhs.lo));
@@ -988,8 +951,7 @@ INTC_API struct intc_u128 INTC_API_PREFIX(128_mod)(struct intc_u128 lhs, struct 
     return result;
 }
 
-// NOTE: U128 Arithmetic U64 Helpers
-// -----------------------------------------------------------------------------
+// NOTE: U128 Arithmetic U64 Helpers ===============================================================
 INTC_API struct intc_u128 INTC_API_PREFIX(128_add_u64)(struct intc_u128 lhs, intc_u64 rhs)
 {
     struct intc_u128 result = INTC_API_PREFIX(128_add)(lhs, INTC_U64_TO_U128(rhs));
@@ -1026,8 +988,7 @@ INTC_API struct intc_u128 INTC_API_PREFIX(128_mod_u64)(struct intc_u128 lhs, int
     return result;
 }
 
-// NOTE: U128 Misc
-// -----------------------------------------------------------------------------
+// NOTE: U128 Misc =================================================================================
 INTC_API int INTC_API_PREFIX(128_clz)(struct intc_u128 in)
 {
     int result = in.hi ? 64 /*include the 64 bits of the low part*/ : 0;
@@ -1039,10 +1000,8 @@ INTC_API int INTC_API_PREFIX(128_clz)(struct intc_u128 in)
     return result;
 }
 
-// -----------------------------------------------------------------------------
-// NOTE: U128 Printing
-// -----------------------------------------------------------------------------
-INTC_API struct intc_u128_string INTC_API_PREFIX(128_str)(struct intc_u128 in, unsigned base, int separate_every_n_chars, char separate_ch)
+// NOTE: U128 Printing =============================================================================
+INTC_API struct intc_u128_string INTC_API_PREFIX(128_str)(struct intc_u128 in, unsigned base, size_t separate_every_n_chars, char separate_ch)
 {
     struct intc_u128_string val = INTC_ZERO_INIT;
     if ((base < 2) || (base > 36))
@@ -1057,7 +1016,7 @@ INTC_API struct intc_u128_string INTC_API_PREFIX(128_str)(struct intc_u128 in, u
         div_result.rem  = INTC_U128_ZERO;
 
         do {
-            div_result          = INTC_API_PREFIX(128_divmod)(div_result.quot, INTC_U64_TO_U128(base));
+            div_result           = INTC_API_PREFIX(128_divmod)(div_result.quot, INTC_U64_TO_U128(base));
             val.data[val.size++] = "0123456789abcdefghijklmnopqrstuvwxyz"[div_result.rem.lo];
 
             if (separate_ch && separate_every_n_chars > 0 && INTC_API_PREFIX(128_as_bool)(div_result.quot)) {
@@ -1080,7 +1039,7 @@ INTC_API struct intc_u128_string INTC_API_PREFIX(128_str)(struct intc_u128 in, u
     return result;
 }
 
-INTC_API struct intc_u128_string INTC_API_PREFIX(128_int_str)(struct intc_u128 in, int separate_every_n_chars, char separate_ch)
+INTC_API struct intc_u128_string INTC_API_PREFIX(128_int_str)(struct intc_u128 in, size_t separate_every_n_chars, char separate_ch)
 {
     struct intc_u128_string result = INTC_API_PREFIX(128_str)(in, 10 /*base*/, separate_every_n_chars, separate_ch);
     return result;
@@ -1092,7 +1051,7 @@ INTC_API struct intc_u128_string INTC_API_PREFIX(128_readable_int_str)(struct in
     return result;
 }
 
-INTC_API struct intc_u128_string INTC_API_PREFIX(128_hex_str)(struct intc_u128 in, int separate_every_n_chars, char separate_ch)
+INTC_API struct intc_u128_string INTC_API_PREFIX(128_hex_str)(struct intc_u128 in, size_t separate_every_n_chars, char separate_ch)
 {
     struct intc_u128_string result = INTC_API_PREFIX(128_str)(in, 16 /*base*/, separate_every_n_chars, separate_ch);
     return result;
@@ -1106,8 +1065,7 @@ INTC_API struct intc_u128_string INTC_API_PREFIX(128_readable_hex_str)(struct in
 INTC_END_EXTERN_C
 
 #if !defined(INTC_NO_CPP_FEATURES)
-// NOTE: U128 CPP Bitwise
-// -----------------------------------------------------------------------------
+// NOTE: U128 CPP Bitwise ==========================================================================
 INTC_API intc_u128 operator&(intc_u128 lhs, intc_u128 rhs)
 {
     intc_u128 result = INTC_API_PREFIX(128_and)(lhs, rhs);
@@ -1144,8 +1102,7 @@ INTC_API intc_u128 operator>>(intc_u128 lhs, unsigned shift)
     return result;
 }
 
-// NOTE: U128 CPP Equality
-// -----------------------------------------------------------------------------
+// NOTE: U128 CPP Equality =========================================================================
 INTC_API bool operator==(intc_u128 lhs, intc_u128 rhs)
 {
     bool result = INTC_API_PREFIX(128_eq)(lhs, rhs);
@@ -1158,8 +1115,7 @@ INTC_API bool operator!=(intc_u128 lhs, intc_u128 rhs)
     return result;
 }
 
-// NOTE: U128 CPP Relational
-// -----------------------------------------------------------------------------
+// NOTE: U128 CPP Relational =======================================================================
 INTC_API bool operator>(intc_u128 lhs, intc_u128 rhs)
 {
     bool result = INTC_API_PREFIX(128_gt)(lhs, rhs);
@@ -1184,8 +1140,7 @@ INTC_API bool operator<=(intc_u128 lhs, intc_u128 rhs)
     return result;
 }
 
-// NOTE: U128 CPP Arithmetic
-// -----------------------------------------------------------------------------
+// NOTE: U128 CPP Arithmetic =======================================================================
 INTC_API intc_u128 operator+(intc_u128 lhs, intc_u128 rhs)
 {
     intc_u128 result = INTC_API_PREFIX(128_add)(lhs, rhs);
@@ -1216,8 +1171,7 @@ INTC_API intc_u128 operator%(intc_u128 lhs, intc_u128 rhs)
     return result;
 }
 
-// NOTE: U128 CPP Other
-// -----------------------------------------------------------------------------
+// NOTE: U128 CPP Other ============================================================================
 INTC_API intc_u128 &operator&=(intc_u128 &lhs, intc_u128 rhs)
 {
     lhs = lhs & rhs;
@@ -1307,95 +1261,71 @@ INTC_API intc_u128 operator--(intc_u128 &lhs, int)
 
 #if !defined(INTC_NO_U256)
 INTC_BEGIN_EXTERN_C
-// NOTE: 256 Bit Unsigned Integer
-// -----------------------------------------------------------------------------
-// NOTE: U256 Converters
-// -----------------------------------------------------------------------------
-INTC_API bool INTC_API_PREFIX(256_init_hex_cstring)(char const *string, int size, struct intc_u256 *dest)
+// NOTE: 256 Bit Unsigned Integer ==================================================================
+// NOTE: U256 Converters ===========================================================================
+INTC_API struct intc_u256_init_result INTC_API_PREFIX(256_init_hex_cstring)(char const *string, size_t size, char separator)
 {
-    if (string == 0 || size == 0 || !dest)
-        return false;
+    struct intc_u256_init_result result = INTC_ZERO_INIT;
+    if (string == 0 || size <= 0)
+        return result;
 
-    if (size < 0) {
-        for (size = 0; string[size]; size++)
-            ;
+    if      (size >= 2 && string[0] == '0' && string[1] == 'x') { string += 2; size -= 2; }
+    else if (size >= 1 && string[0] == 'x')                     { string += 1; size -= 1; }
+
+    struct intc_u256 dest = INTC_ZERO_INIT;
+    for (size_t index = size - 1, bits_written = 0; index < size; index--) {
+        if (bits_written >= (sizeof(dest) * 8))
+            return result;
+
+        char hex_ch = string[index];
+        if (separator != 0 && hex_ch == separator)
+            continue;
+
+        unsigned char bits4 =   (hex_ch >= '0' && hex_ch <= '9') ?  0 + (hex_ch - '0')
+                              : (hex_ch >= 'a' && hex_ch <= 'f') ? 10 + (hex_ch - 'a')
+                              : (hex_ch >= 'A' && hex_ch <= 'F') ? 10 + (hex_ch - 'A')
+                              : 0xFF;
+
+        if (bits4 == 0xFF)
+            return result;
+
+        struct intc_u256 bits4_as_u256 = INTC_U64_TO_U256(bits4);
+        dest                           = INTC_API_PREFIX(256_or)(dest, (INTC_API_PREFIX(256_lshift)(bits4_as_u256, (unsigned)bits_written)));
+        bits_written += 4;
     }
 
-    if      (size >= 2 && string[1] == 'x') { string += 2; size -= 2; }
-    else if (size >= 1 && string[0] == 'x') { string += 1; size -= 1; }
-
-    char buffer[64];
-    int pad_length = (int)sizeof(buffer) - size;
-    for (int pad_index = 0; pad_index < pad_length; pad_index++)
-        buffer[pad_index] = '0';
-
-    for (int string_index = 0; string_index < size; string_index++)
-        buffer[pad_length + string_index] = string[string_index];
-
-    int  half_buffer_size = sizeof(buffer) / 2;
-    bool result           = INTC_API_PREFIX(128_init_hex_cstring)(buffer, half_buffer_size, &dest->hi);
-    result               |= INTC_API_PREFIX(128_init_hex_cstring)(buffer + half_buffer_size, half_buffer_size, &dest->lo);
-
+    result.value   = dest;
+    result.success = true;
     return result;
 }
 
-INTC_API bool INTC_API_PREFIX(256_init_hex_cstring_base)(char const *string, int size, int base, struct intc_u256 *dest)
+INTC_API struct intc_u256_init_result INTC_API_PREFIX(256_init_cstring)(char const *string, size_t size, char separator)
 {
-    if (string == 0 || size == 0 || !dest || base <= 0)
-        return false;
+    struct intc_u256_init_result result = INTC_ZERO_INIT;
+    if (string == 0 || size <= 0)
+        return result;
 
-    if (size < 0) {
-        for (size = 0; string[size]; size++)
-            ;
+    size_t const U256_MAX_STRING_SIZE = sizeof("115792089237316195423570985008687907853269984665640564039457584007913129639935") - 1; // 2^256
+    struct intc_u256 dest             = INTC_ZERO_INIT;
+    for (size_t index = 0, digits_written = 0; index < size; index++) {
+        if (digits_written >= U256_MAX_STRING_SIZE)
+            return result;
+
+        char digit = string[index];
+        if (separator != 0 && digit == separator)
+            continue;
+
+        intc_u64 value = (digit >= '0' && digit <= '9') ? (digit - '0') : 0xFF;
+        if (value == 0xFF)
+            return result;
+
+        dest = INTC_API_PREFIX(256_mul_u64)(dest, 10);
+        dest = INTC_API_PREFIX(256_add_u64)(dest, value);
+        digits_written++;
     }
 
-    if      (size >= 2 && string[1] == 'x') { string += 2; size -= 2; }
-    else if (size >= 1 && string[0] == 'x') { string += 1; size -= 1; }
-
-    *dest = INTC_U256_ZERO;
-    struct intc_u256 power = INTC_U64_TO_U256(1);
-    for (int digit = 0, pos = size - 1;
-         pos >= 0;
-         digit = 0, pos--)
-    {
-        if ('0' <= string[pos] && string[pos] <= '9')
-            digit = string[pos] - '0';
-        else if ('a' <= string[pos] && string[pos] <= 'z')
-            digit = string[pos] - 'a' + 10;
-        else if ('A' <= string[pos] && string[pos] <= 'Z')
-            digit = string[pos] - 'A' + 10;
-        else
-            return false;
-
-        *dest = INTC_API_PREFIX(256_add)(*dest, INTC_API_PREFIX(256_mul_u64)(power, (intc_u64)digit));
-        power = INTC_API_PREFIX(256_mul_u64)(power, base);
-    }
-
-    return true;
-}
-
-INTC_API bool INTC_API_PREFIX(256_init_cstring)(char const *string, int size, struct intc_u256 *dest, char separator)
-{
-    if (string == 0 || size == 0 || !dest)
-        return false;
-
-    if (size < 0) {
-        for (size = 0; string[size]; size++)
-            ;
-    }
-
-    char buffer[64];
-    int pad_length = (int)sizeof(buffer) - size;
-    for (int pad_index = 0; pad_index < pad_length; pad_index++)
-        buffer[pad_index] = '0';
-
-    for (int string_index = 0; string_index < size; string_index++)
-        buffer[pad_length + string_index] = string[string_index];
-
-    int  half_buffer_size = sizeof(buffer) / 2;
-    bool result           = INTC_API_PREFIX(128_init_cstring)(buffer, half_buffer_size, &dest->hi, separator);
-    result               |= INTC_API_PREFIX(128_init_cstring)(buffer + half_buffer_size, half_buffer_size, &dest->lo, separator);
-
+    result.value   = dest;
+    result.success = true;
     return result;
 }
 
@@ -1436,8 +1366,7 @@ INTC_API struct intc_u128 INTC_API_PREFIX(256_as_u128)(struct intc_u256 in)
     return result;
 }
 
-// NOTE: U256 Bitwise
-// -----------------------------------------------------------------------------
+// NOTE: U256 Bitwise ==============================================================================
 INTC_API struct intc_u256 INTC_API_PREFIX(256_and)(struct intc_u256 lhs, struct intc_u256 rhs)
 {
     struct intc_u256 result = INTC_U256(INTC_API_PREFIX(128_and)(lhs.lo, rhs.lo), INTC_API_PREFIX(128_and)(lhs.hi, rhs.hi));
@@ -1527,8 +1456,7 @@ INTC_API struct intc_u256 INTC_API_PREFIX(256_rshift)(struct intc_u256 lhs, unsi
     return INTC_U256_ZERO;
 }
 
-// NOTE: U256 Equality
-// -----------------------------------------------------------------------------
+// NOTE: U256 Equality =============================================================================
 INTC_API bool INTC_API_PREFIX(256_eq)(struct intc_u256 lhs, struct intc_u256 rhs)
 {
     bool result = (INTC_API_PREFIX(128_eq)(lhs.lo, rhs.lo) && INTC_API_PREFIX(128_eq)(lhs.hi, rhs.hi));
@@ -1542,8 +1470,7 @@ INTC_API bool INTC_API_PREFIX(256_neq)(struct intc_u256 lhs, struct intc_u256 rh
     return result;
 }
 
-// NOTE: U256 Equality U64 Helpers
-// -----------------------------------------------------------------------------
+// NOTE: U256 Equality U64 Helpers =================================================================
 INTC_API bool INTC_API_PREFIX(256_eq_u64)(struct intc_u256 lhs, intc_u64 rhs)
 {
     bool result = INTC_API_PREFIX(256_eq)(lhs, INTC_U64_TO_U256(rhs));
@@ -1556,8 +1483,7 @@ INTC_API bool INTC_API_PREFIX(256_neq_u64)(struct intc_u256 lhs, intc_u64 rhs)
     return result;
 }
 
-// NOTE: U256 Relational
-// -----------------------------------------------------------------------------
+// NOTE: U256 Relational ===========================================================================
 INTC_API bool INTC_API_PREFIX(256_gt)(struct intc_u256 lhs, struct intc_u256 rhs)
 {
     bool result = INTC_API_PREFIX(128_eq)(lhs.hi, rhs.hi) ? INTC_API_PREFIX(128_gt)(lhs.lo, rhs.lo) : INTC_API_PREFIX(128_gt)(lhs.hi, rhs.hi);
@@ -1583,8 +1509,7 @@ INTC_API bool INTC_API_PREFIX(256_lt_eq)(struct intc_u256 lhs, struct intc_u256 
     return result;
 }
 
-// NOTE: U256 Relational U64 Helpers
-// -----------------------------------------------------------------------------
+// NOTE: U256 Relational U64 Helpers ===============================================================
 INTC_API bool INTC_API_PREFIX(256_gt_u64)(struct intc_u256 lhs, intc_u64 rhs)
 {
     bool result = INTC_API_PREFIX(256_gt)(lhs, INTC_U64_TO_U256(rhs));
@@ -1609,8 +1534,7 @@ INTC_API bool INTC_API_PREFIX(256_lt_eq_u64)(struct intc_u256 lhs, intc_u64 rhs)
     return result_eq;
 }
 
-// NOTE: U256 Arithmetic
-// -----------------------------------------------------------------------------
+// NOTE: U256 Arithmetic ===========================================================================
 INTC_API struct intc_u256 INTC_API_PREFIX(256_add)(struct intc_u256 lhs, struct intc_u256 rhs)
 {
     struct intc_u128 lo = INTC_API_PREFIX(128_add)(lhs.lo, rhs.lo);
@@ -1743,8 +1667,7 @@ INTC_API struct intc_u256 INTC_API_PREFIX(256_mod)(struct intc_u256 lhs, struct 
     return result;
 }
 
-// NOTE: U256 Arithmetic U64 Helpers
-// -----------------------------------------------------------------------------
+// NOTE: U256 Arithmetic U64 Helpers ===============================================================
 INTC_API struct intc_u256 INTC_API_PREFIX(256_add_u64)(struct intc_u256 lhs, intc_u64 rhs)
 {
     struct intc_u256 result = INTC_API_PREFIX(256_add)(lhs, INTC_U64_TO_U256(rhs));
@@ -1781,8 +1704,7 @@ INTC_API struct intc_u256 INTC_API_PREFIX(256_mod_u64)(struct intc_u256 lhs, int
     return result;
 }
 
-// NOTE: U256 Misc
-// -----------------------------------------------------------------------------
+// NOTE: U256 Misc =================================================================================
 INTC_API int INTC_API_PREFIX(256_clz)(struct intc_u256 in)
 {
     int result = INTC_API_PREFIX(128_as_bool)(in.hi) ? 128 /*include the 128 bits of the low part*/ : 0;
@@ -1794,9 +1716,8 @@ INTC_API int INTC_API_PREFIX(256_clz)(struct intc_u256 in)
     return result;
 }
 
-// NOTE: U256 Printing
-// -----------------------------------------------------------------------------
-INTC_API struct intc_u256_string INTC_API_PREFIX(256_str)(struct intc_u256 in, unsigned base, int separate_every_n_chars, char separate_ch)
+// NOTE: U256 Printing =============================================================================
+INTC_API struct intc_u256_string INTC_API_PREFIX(256_str)(struct intc_u256 in, unsigned base, size_t separate_every_n_chars, char separate_ch)
 {
     struct intc_u256_string val = INTC_ZERO_INIT;
     if ((base < 2) || (base > 36))
@@ -1833,7 +1754,7 @@ INTC_API struct intc_u256_string INTC_API_PREFIX(256_str)(struct intc_u256 in, u
     return result;
 }
 
-INTC_API struct intc_u256_string INTC_API_PREFIX(256_int_str)(struct intc_u256 in, int separate_every_n_chars, char separate_ch)
+INTC_API struct intc_u256_string INTC_API_PREFIX(256_int_str)(struct intc_u256 in, size_t separate_every_n_chars, char separate_ch)
 {
     struct intc_u256_string result = INTC_API_PREFIX(256_str)(in, 10 /*base*/, separate_every_n_chars, separate_ch);
     return result;
@@ -1845,7 +1766,7 @@ INTC_API struct intc_u256_string INTC_API_PREFIX(256_readable_int_str)(struct in
     return result;
 }
 
-INTC_API struct intc_u256_string INTC_API_PREFIX(256_hex_str)(struct intc_u256 in, int separate_every_n_chars, char separate_ch)
+INTC_API struct intc_u256_string INTC_API_PREFIX(256_hex_str)(struct intc_u256 in, size_t separate_every_n_chars, char separate_ch)
 {
     struct intc_u256_string result = INTC_API_PREFIX(256_str)(in, 16 /*base*/, separate_every_n_chars, separate_ch);
     return result;
@@ -1859,8 +1780,7 @@ INTC_API struct intc_u256_string INTC_API_PREFIX(256_readable_hex_str)(struct in
 INTC_END_EXTERN_C
 
 #if !defined(INTC_NO_CPP_FEATURES)
-// NOTE: U256 CPP Bitwise
-// -----------------------------------------------------------------------------
+// NOTE: U256 CPP Bitwise ==========================================================================
 INTC_API intc_u256 operator&(intc_u256 lhs, intc_u256 rhs)
 {
     intc_u256 result = INTC_API_PREFIX(256_and)(lhs, rhs);
@@ -1897,8 +1817,7 @@ INTC_API intc_u256 operator>>(intc_u256 lhs, unsigned shift)
     return result;
 }
 
-// NOTE: U256 CPP Equality
-// -----------------------------------------------------------------------------
+// NOTE: U256 CPP Equality =========================================================================
 INTC_API bool operator==(intc_u256 lhs, intc_u256 rhs)
 {
     bool result = INTC_API_PREFIX(256_eq)(lhs, rhs);
@@ -1911,8 +1830,7 @@ INTC_API bool operator!=(intc_u256 lhs, intc_u256 rhs)
     return result;
 }
 
-// NOTE: U256 CPP Relational
-// -----------------------------------------------------------------------------
+// NOTE: U256 CPP Relational =======================================================================
 INTC_API bool operator>(intc_u256 lhs, intc_u256 rhs)
 {
     bool result = INTC_API_PREFIX(256_gt)(lhs, rhs);
@@ -1937,8 +1855,7 @@ INTC_API bool operator<=(intc_u256 lhs, intc_u256 rhs)
     return result;
 }
 
-// NOTE: U256 CPP Arithmetic
-// -----------------------------------------------------------------------------
+// NOTE: U256 CPP Arithmetic =======================================================================
 INTC_API intc_u256 operator+(intc_u256 lhs, intc_u256 rhs)
 {
     intc_u256 result = INTC_API_PREFIX(256_add)(lhs, rhs);
@@ -1969,8 +1886,7 @@ INTC_API intc_u256 operator%(intc_u256 lhs, intc_u256 rhs)
     return result;
 }
 
-// NOTE: U256 CPP Other
-// -----------------------------------------------------------------------------
+// NOTE: U256 CPP Other ============================================================================
 INTC_API intc_u256 &operator&=(intc_u256 &lhs, intc_u256 rhs)
 {
     lhs = lhs & rhs;
